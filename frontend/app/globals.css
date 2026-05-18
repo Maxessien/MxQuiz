@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+:root {
+  --main-primary: #6d28d9;
+  --main-primary-light: #8b5cf6;
+  --main-primary-lighter: #a78bfa;
+  --main-secondary: #030305;
+  --main-secondary-light: #09090b;
+  --main-tertiary: #111116;
+  --main-tertiary-light: #18181b;
+  --text-primary: #ffffff;
+  --text-primary-light: #f8fafc;
+  --text-errors: #ef4444;
+  --text-secondary: #a1a1aa;
+  --text-secondary-light: #71717a;
+}
+
+
+body{
+  color: var(--text-primary);
+  background: var(--main-secondary-light);
+  width: 100vw;
+  height: 100vh;
+  min-height: 540px;
+  overflow-x: hidden;
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.scrollbar-hide{
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
