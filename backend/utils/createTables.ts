@@ -162,3 +162,15 @@ export const createSavedQuizTable = async () => {
     console.error("Error creating saved quizzes table:", error);
   }
 };
+
+
+export const createAllTables = async () => {
+  console.log("Starting table creation...");
+  await createUserTable();
+  await createQuizTable();
+  await createQuestionsTable();
+  await createQuizAttemptsTable();
+  await createQuizCommentsTable();
+  await createSavedQuizTable();
+  console.log("Finished creating all tables.");
+};
