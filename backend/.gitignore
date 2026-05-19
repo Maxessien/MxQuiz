@@ -11,6 +11,9 @@ yarn-error.log*
 # Environment variables
 .env
 
+tmp
+uploads
+
 # Build output
 dist/
 build/

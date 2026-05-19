@@ -4,8 +4,8 @@ import { readFile } from "node:fs/promises";
 import { client } from "../configs/groq.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
 import logger from "../utils/logger.js";
-import { storeQuizandQuestions } from "../utils/regHelpers";
-import { Quiz, QuizQuestion } from "../utils/types";
+import { getPdfSystemsPrompt, storeQuizandQuestions } from "../utils/regHelpers";
+import { Quiz, QuizQuestion, QuizType } from "../utils/types";
 
 interface QuizBody extends Pick<
   Quiz,
@@ -34,15 +34,16 @@ const createQuiz = async(req: Request, res: Response) => {
       questions,
     );
 
-    return res.status(SUCCESS.CREATED)
+    return res.status(SUCCESS.CREATED).json({ message: "Quiz created" });
   } catch (err) {
     logger.error("Create Quiz", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 };
 
 const createQuizWithAi = async (req: Request, res: Response) => {
   try {
+    const {qType, qCount, optCount} = req.body
     const pdf = req.uploaded?.find(({fieldname})=>fieldname==="pdf")
     const thumbnail = req.uploaded?.find(({fieldname})=>fieldname==="thumbnail")
     if (!pdf) return res.status(CLIENT_ERROR.BAD_REQUEST).json({message: "No pdf file uploaded"})
@@ -55,17 +56,24 @@ const createQuizWithAi = async (req: Request, res: Response) => {
     formdata.append("pdf_file", blob, pdf?.originalname || "document.pdf");
 
     const pdfText = await axios.post<{ extracted_text: string }>(
-      process.env.PDF_EXTRACTOR_URL || "",
+      `${process.env.PDF_EXTRACTOR_URL}/upload` || "",
       formdata,
     );
 
     if (!pdfText.data?.extracted_text?.trim())
-      return res.status(CLIENT_ERROR.BAD_REQUEST);
+      return res.status(CLIENT_ERROR.BAD_REQUEST).json({message: "Empty file"});
+
+    const allowedType = ["mcq", "theory", "both"]
+    const clean: {type: QuizType, count: number, optCount: number} = {
+      type: typeof qType === "string" && allowedType.includes(qType) ? (qType as QuizType) : "mcq",
+      count: Number.isFinite(Number(qCount)) ? Number(qCount) : 10,
+      optCount: Number.isFinite(Number(optCount)) ? Number(optCount) : 3,
+    }
 
     const questionsRes = await client.chat.completions.create({
       model: "openai/gpt-oss-120b",
       messages: [
-        { role: "system", content: "" },
+        { role: "system", content: getPdfSystemsPrompt(clean.type, clean.count, clean.optCount) },
         { role: "user", content: pdfText.data.extracted_text },
       ],
       response_format: { type: "json_object" },
@@ -89,10 +97,10 @@ const createQuizWithAi = async (req: Request, res: Response) => {
       response_format: { type: "json_object" },
     });
 
-    const content = questionsRes.choices[0].message.content;
-    const infoContent = quizInfoRes.choices[0].message.content;
-    if (!content) return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
-
+    const content = questionsRes.choices[0].message.content
+    const infoContent = quizInfoRes.choices[0].message.content
+    if (!content) return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Failed to generate questions" });
+    
     const questions: QuizQuestion[] = JSON.parse(content);
     const quizInfo: Quiz = JSON.parse(infoContent || "");
 
@@ -100,13 +108,14 @@ const createQuizWithAi = async (req: Request, res: Response) => {
     quizInfo.isAiGen = true
     quizInfo.thumbnail = thumbnail?.url || null
 
-    await storeQuizandQuestions(quizInfo, questions)
+    await storeQuizandQuestions(quizInfo, questions);
 
     return res.status(SUCCESS.CREATED).json({quizInfo, questions})
   } catch (err) {
     logger.error("Create quiz with AI", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 };
 
 export { createQuiz, createQuizWithAi };
+

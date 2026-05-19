@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import logger from "../utils/logger.js";
-import { CreateUserReqBody } from "../utils/types.js";
+import { UserRecord } from "firebase-admin/auth";
+import { PoolClient } from "pg";
 import { auth } from "../configs/fbConfigs.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes.js";
+import logger from "../utils/logger.js";
 import { IS_DEVELOPMENT, SESSION_COOKIE_NAME } from "../utils/regHelpers.js";
-import { PoolClient } from "pg";
-import { UserRecord } from "firebase-admin/auth";
+import { CreateUserReqBody } from "../utils/types.js";
 
 const createUser = async (req: Request, res: Response) => {
   try {
@@ -25,7 +25,7 @@ const createUser = async (req: Request, res: Response) => {
     return res.status(SUCCESS.CREATED).json({ message: "User created" });
   } catch (err) {
     logger.log("Create user", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 };
 
@@ -44,10 +44,10 @@ const setLoggedinCookie = async (req: Request, res: Response) => {
       httpOnly: !IS_DEVELOPMENT,
     });
 
-    return res.status(SUCCESS.OK);
+    return res.status(SUCCESS.OK).json({ message: "Cookie set" });
   } catch (err) {
     logger.log("Set logged in", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 };
 
@@ -60,10 +60,10 @@ const deleteSessionCookie = async (req: Request, res: Response) => {
       secure: !IS_DEVELOPMENT,
     });
 
-    return res.status(SUCCESS.OK)
+    return res.status(SUCCESS.OK).json({ message: "Cookie deleted" });
   } catch (err) {
     logger.log("delete cookie", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 };
 
@@ -72,10 +72,10 @@ const updateUser = async (req: Request, res: Response) => {
   let client: PoolClient | null = null;
   try {
     client = await pool.connect();
-    client.query("BEGIN");
+    await client.query("BEGIN");
 
     const { email, name, password } = req.body;
-    if (!name?.trim() || !email?.trim() || !req.auth?.uid) return res.status(CLIENT_ERROR.BAD_REQUEST);
+    if (!name?.trim() || !email?.trim() || !req.auth?.uid) return res.status(CLIENT_ERROR.BAD_REQUEST).json({ message: "Bad request" });
 
     const query = `UPDATE users SET name=$1, email=$2 WHERE user_id=$3`;
     await client.query<{ user_id: string }>(query, [name, email, req.auth?.uid]);
@@ -86,16 +86,17 @@ const updateUser = async (req: Request, res: Response) => {
       ...(password ? { password } : {}),
     });
 
-    if (!user) throw new Error("Couldn't create user")
-
+    if (!user) throw new Error("Couldn't update user")
     client.query("COMMIT");
+    res.status(SUCCESS.OK).json({ message: "User updated" });
   } catch (err) {
     if (client) client.query("ROLLBACK");
     logger.error("Update user error", err);
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR);
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }finally{
     if (client) client.release()
   }
 };
 
-export { createUser, setLoggedinCookie, deleteSessionCookie, updateUser };
+export { createUser, deleteSessionCookie, setLoggedinCookie, updateUser };
+

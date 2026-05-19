@@ -1,6 +1,6 @@
-import pool from "./../configs/sqlConfig.js";
-import type { Quiz, QuizQuestion } from "./types.js";
 import format from "pg-format";
+import pool from "./../configs/sqlConfig.js";
+import type { Quiz, QuizQuestion, QuizType } from "./types.js";
 
 export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
@@ -36,13 +36,11 @@ const storeQuizandQuestions = async (
                 is_ai_generated,
                 visibility,
                 status,
-                time_limit,
-                question_count
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                time_limit
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
             RETURNING quiz_id
         `;
 
-    const questionCount = Array.isArray(questions) ? questions.length : 0;
     const timeLimit = typeof time === "number" ? time : null;
 
     const quizValues = [
@@ -54,13 +52,22 @@ const storeQuizandQuestions = async (
       visibility,
       status,
       timeLimit,
-      questionCount,
     ];
 
     const res = await client.query(insertQuizQuery, quizValues);
     const insertedQuizId = res.rows[0]?.quiz_id;
 
     // Insert questions
+
+    const allQValues = questions.map((q) => [
+      insertedQuizId,
+      q.type,
+      q.questionText,
+      JSON.stringify(q.options || []),      
+      q.answer,
+      q.explanation || null,
+    ]);
+    
     const insertQuestionQuery = `
             INSERT INTO questions (
                 quiz_id,
@@ -72,15 +79,7 @@ const storeQuizandQuestions = async (
             ) VALUES %L
         `;
 
-    const allQValues = questions.map((q) => [
-      insertedQuizId,
-      q.type,
-      q.questionText,
-      JSON.stringify(q.options || {}),
-      q.answer,
-      q.explanation || null,
-    ]);
-    await client.query(format(insertQuestionQuery), allQValues);
+    await client.query(format(insertQuestionQuery, allQValues));
 
     await client.query("COMMIT");
     return insertedQuizId;
@@ -92,7 +91,7 @@ const storeQuizandQuestions = async (
   }
 };
 
-const getPdfSystemsPrompt = (questionType: "mcq" | "theory" | "both", questionCount: number, optionsCount?: number)=>{
+const getPdfSystemsPrompt = (questionType: QuizType, questionCount: number, optionsCount?: number)=>{
 
   const extra = {
     both: "The array should contain a mix of mcq and theory question type with a 7:3 ratio respectively",
@@ -104,10 +103,17 @@ const getPdfSystemsPrompt = (questionType: "mcq" | "theory" | "both", questionCo
   generate an array of ${questionCount} quiz questions 
   ${Number.isFinite(optionsCount) && (questionType === "mcq" || questionType === "both") 
   ? `with each question having only ${optionsCount} options` : ""} in valid JSON format. 
+  CRITICAL RULE FOR MCQs: Ensure all options are of similar length and level of detail. 
+  The correct answer MUST NOT be noticeably longer, more explanatory, or structurally different from the incorrect options. 
+  Create plausible distractors so the answer cannot be guessed without actually reading the provided text.
+  SECOND CRITICAL RULE FOR MCQs: The position/index of the correct answer within the options array 
+  MUST be cryptographically randomized across the quiz. Ensure perfectly even distribution of correct answer 
+  positions so no single option index is favored as the correct answer over the others. 
   Your response must strictly contain ONLY an array of objects matching this exact structure structure 
   (no markdown wrappers or other text): [{ "type": "mcq" | "theory", "questionText": "The question being asked", 
   "options": [{ "optionId": "unique-id", "value": "Option text" }], "answer": "The correct optionId or theory answer", 
   "explanation": "Why the answer is correct or null" }]. ${extra[questionType]}`;
 }
 
-export {storeQuizandQuestions, getPdfSystemsPrompt};
+export { getPdfSystemsPrompt, storeQuizandQuestions };
+

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { userAuthMiddleware } from "../middlewares/authMiddleware";
-import { createQuiz, createQuizWithAi } from "../controllers/quizControllers";
 import { multerUpload } from "../configs/fileUploadConfigs";
+import { createQuiz, createQuizWithAi } from "../controllers/quizControllers";
+import { userAuthMiddleware } from "../middlewares/authMiddleware";
 import { handleFileUpload } from "../middlewares/regMiddleware";
 
 const router = Router();
@@ -17,14 +17,10 @@ router.post(
 router.post(
   "/ai",
   userAuthMiddleware,
-  multerUpload.fields([
-    { name: "thumbnail", maxCount: 1 },
-    { name: "pdf", maxCount: 1 },
-  ]),
+  multerUpload.any(),
   handleFileUpload,
   createQuizWithAi,
 );
-
 const quizRoutes = router;
 
 export default quizRoutes;

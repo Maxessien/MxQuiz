@@ -2,7 +2,7 @@ import pool from "./../configs/sqlConfig";
 
 export const createUserTable = async () => {
   const query = `
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
       user_id TEXT PRIMARY KEY,
 
       name VARCHAR(100) NOT NULL,
@@ -26,7 +26,7 @@ export const createUserTable = async () => {
 
 export const createQuizTable = async () => {
   const query = `
-    CREATE TABLE quizzes (
+    CREATE TABLE IF NOT EXISTS quizzes (
       quiz_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
       title VARCHAR(255) NOT NULL,
@@ -40,7 +40,7 @@ export const createQuizTable = async () => {
 
       visibility VARCHAR(20) DEFAULT 'public' CHECK(visibility IN ('public', 'private')),
 
-      status VARCHAR(20) DEFAULT 'draft' CHECK(status IN 'draft', 'published'),
+      status VARCHAR(20) DEFAULT 'draft' CHECK(status IN ('draft', 'published')),
 
       time_limit INTEGER,
 
@@ -59,13 +59,13 @@ export const createQuizTable = async () => {
 
 export const createQuestionsTable = async () => {
   const query = `
-    CREATE TABLE questions (
+    CREATE TABLE IF NOT EXISTS questions (
       question_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
       quiz_id UUID NOT NULL REFERENCES quizzes(quiz_id)
         ON DELETE CASCADE,
 
-      type VARCHAR(50) NOT NULL CHECK(type IN 'mcq', 'theory'),
+      type VARCHAR(50) NOT NULL CHECK(type IN ('mcq', 'theory')),
 
       question_text TEXT NOT NULL,
 
@@ -92,7 +92,7 @@ export const createQuizAttemptsTable = async () => {
     CREATE TABLE IF NOT EXISTS quiz_attempts (
       attempt_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       quiz_id UUID NOT NULL REFERENCES quizzes(quiz_id) ON DELETE CASCADE,
-      user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
       chosen_answers JSONB,
       score INTEGER,
       status TEXT CHECK (status IN ('finished', 'unfinished')) DEFAULT 'unfinished'
@@ -109,13 +109,13 @@ export const createQuizAttemptsTable = async () => {
 
 export const createQuizCommentsTable = async () => {
   const query = `
-    CREATE TABLE quiz_comments (
+    CREATE TABLE IF NOT EXISTS quiz_comments (
       quiz_comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
       quiz_id UUID NOT NULL REFERENCES quizzes(quiz_id)
           ON DELETE CASCADE,
 
-      user_id UUID NOT NULL REFERENCES users(user_id)
+      user_id TEXT NOT NULL REFERENCES users(user_id)
           ON DELETE CASCADE,
 
       comment TEXT NOT NULL,
@@ -136,10 +136,10 @@ export const createQuizCommentsTable = async () => {
 
 export const createSavedQuizTable = async () => {
   const query = `
-    CREATE TABLE saved_quizzes (
+    CREATE TABLE IF NOT EXISTS saved_quizzes (
       saved_quiz_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-      user_id UUID NOT NULL REFERENCES users(user_id)
+      user_id TEXT NOT NULL REFERENCES users(user_id)
           ON DELETE CASCADE,
 
       quiz_id UUID NOT NULL REFERENCES quizzes(quiz_id)

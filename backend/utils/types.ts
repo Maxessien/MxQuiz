@@ -39,3 +39,5 @@ export interface QuizQuestion {
   answer: string,
   explanation: string | null
 }
+
+export type QuizType = "mcq" | "theory" | "both"

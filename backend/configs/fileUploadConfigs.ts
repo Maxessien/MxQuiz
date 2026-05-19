@@ -6,7 +6,7 @@ import { join } from "path";
 
 const offlineCl = offlineCloudinary
 
-const uploader = IS_DEVELOPMENT ? offlineCl : cloudinary.uploader
+const uploader = cloudinary.uploader
 
 const storage = multer.diskStorage({destination: join(process.cwd(), "uploads")})
 
