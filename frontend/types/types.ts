@@ -24,17 +24,6 @@ export interface UserResponse {
   role: "user" | "admin";
 }
 
-export interface QuizResponse {
-  title: string;
-  thumbnail: string | null;
-  description: string;
-  author: string;
-  isAiGen: boolean;
-  visibility: "public" | "private";
-  status: "draft" | "published";
-  time: number | null;
-}
-
 export interface QuizQuestionOption {
   optionId: string;
   value: string | number;
