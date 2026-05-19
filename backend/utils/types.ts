@@ -19,7 +19,6 @@ export interface RequestImages extends Express.Multer.File {
 
 export interface Quiz {
   title: string;
-  thumbnail: string | null;
   description: string;
   author: string;
   isAiGen: boolean;

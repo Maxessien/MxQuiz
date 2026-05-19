@@ -37,6 +37,7 @@ const getUser = async (req: Request, res: Response) => {
       "SELECT user_id, name, email, role, avatar_url FROM users WHERE user_id=$1",
       [req.auth?.uid],
     );
+    if (!user.rows?.[0]) return res.status(CLIENT_ERROR.NOT_FOUND).json({message: "User not found"})
     return res.status(SUCCESS.OK).json(user.rows?.[0]);
   } catch (err) {
     logger.log("Get user", err);
@@ -70,7 +71,7 @@ const setLoggedinCookie = async (req: Request, res: Response) => {
   }
 };
 
-const deleteSessionCookie = async (req: Request, res: Response) => {
+const deleteSessionCookie = async (_: Request, res: Response) => {
   try {
     res.cookie(SESSION_COOKIE_NAME, null, {
       maxAge: 0,

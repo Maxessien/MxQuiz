@@ -16,7 +16,6 @@ const storeQuizandQuestions = async (
     description,
     isAiGen,
     status,
-    thumbnail,
     time,
     title,
     visibility,
@@ -30,14 +29,13 @@ const storeQuizandQuestions = async (
     const insertQuizQuery = `
             INSERT INTO quizzes (
                 title,
-                thumbnail_url,
                 description,
                 author_user_id,
                 is_ai_generated,
                 visibility,
                 status,
                 time_limit
-            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7)
             RETURNING quiz_id
         `;
 
@@ -45,7 +43,6 @@ const storeQuizandQuestions = async (
 
     const quizValues = [
       title,
-      thumbnail,
       description,
       author,
       isAiGen,

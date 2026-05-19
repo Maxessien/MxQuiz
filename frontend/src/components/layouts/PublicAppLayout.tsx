@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { ReactNode, useState } from "react";
 import { HiMenu, HiX } from "react-icons/hi";
 import Button from "../reusable/Button";
@@ -28,8 +29,10 @@ const NavItem = ({
 };
 
 const PublicAppLayout = ({ children }: { children: ReactNode }) => {
-  const router = useRouter();
   const [showNav, setShowNav] = useState(false)
+  const pathname = usePathname()
+  
+  const router = useRouter();
   return (
     <main>
       <header className="w-full bg-(--main-secondary-light) px-3 sm:px-5 lg:px-8 py-4 flex justify-between items-center gap-2">
@@ -42,7 +45,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                 <NavItem location="/" text="Home" />
               </li>
               <li>
-                <NavItem location="/quiz" text="Quizzes" />
+                <NavItem location="/quiz" isActive={pathname.startsWith("/quiz")} text="Quizzes" />
               </li>
               <li>
                 <NavItem location="/quiz/create" text="Create Quiz" />

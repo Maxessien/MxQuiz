@@ -30,7 +30,6 @@ export const createQuizTable = async () => {
       quiz_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
       title VARCHAR(255) NOT NULL,
-      thumbnail_url TEXT,
       description TEXT,
 
       author_user_id TEXT NOT NULL REFERENCES users(user_id)

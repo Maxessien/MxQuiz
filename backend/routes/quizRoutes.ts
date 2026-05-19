@@ -9,8 +9,6 @@ const router = Router();
 router.post(
   "/",
   userAuthMiddleware,
-  multerUpload.single("thumbnail"),
-  handleFileUpload,
   createQuiz,
 );
 

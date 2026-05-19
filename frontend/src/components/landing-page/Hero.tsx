@@ -1,3 +1,7 @@
+"use client"
+
+import { useAppSelector } from "@/store";
+import { useRouter } from "nextjs-toploader/app";
 import { FaBolt, FaBrain, FaUserGraduate } from "react-icons/fa";
 import { FiBookOpen } from "react-icons/fi";
 import { MdOutlineAutoAwesome } from "react-icons/md";
@@ -5,6 +9,9 @@ import Button from "../reusable/Button";
 import DemoWidget from "./DemoWidget";
 
 const Hero = () => {
+  const router = useRouter()
+  const {isLoggedIn, userId} = useAppSelector(state=>state.user)
+
   return (
     <section className="relative flex flex-col lg:flex-row items-center justify-between gap-16 mt-10">
       {/* Background glow overlay */}
@@ -29,12 +36,13 @@ const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 mb-12 w-full sm:w-auto">
-          <Button size="large" color="primary" className="w-full sm:w-auto">
+          <Button size="large" color="primary" attrs={{onClick: ()=> router.push(isLoggedIn && userId.trim() ? `/${userId}/quiz/gen` : "/login")}} className="w-full sm:w-auto">
             Generate Quiz Now <MdOutlineAutoAwesome className="ml-2" />
           </Button>
           <Button
             size="large"
             color="tertiary"
+            attrs={{onClick: ()=> router.push("/quiz")}}
             className="w-full sm:w-auto text-(--text-primary-light)! border-(--text-secondary-light)/40! hover:bg-(--main-tertiary-light)!"
           >
             Explore Quizzes <FiBookOpen className="ml-2" />
@@ -56,7 +64,7 @@ const Hero = () => {
 
       {/* Right Content - Interactive Widget */}
       <div className="flex-1 w-full flex justify-center lg:justify-end z-10 perspective-1000">
-        <div className="transform lg:rotate-y-[-5deg] lg:rotate-x-[5deg]">
+        <div onClick={()=> router.push(isLoggedIn && userId.trim() ? `/${userId}/quiz/gen` : "/login")} className="transform lg:rotate-y-[-5deg] lg:rotate-x-[5deg]">
             <DemoWidget />
         </div>
       </div>

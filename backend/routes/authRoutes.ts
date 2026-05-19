@@ -9,7 +9,7 @@ router.get("/", userAuthMiddleware, getUser)
 router.post("/", createUser)
 router.post("/:id", userAuthMiddleware, updateUser)
 router.post("/token", userAuthMiddleware, setLoggedinCookie)
-router.delete("/token", userAuthMiddleware, deleteSessionCookie)
+router.delete("/token", deleteSessionCookie)
 
 const authRoutes = router
 

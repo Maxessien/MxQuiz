@@ -19,8 +19,7 @@ const createQuiz = async(req: Request, res: Response) => {
   try {
     const { description, status, time, title, visibility, questions } =
       req.body as QuizBody;
-    const thumbnail = req.uploaded?.find(({fieldname})=> fieldname === "thumbnail")?.url || "";
-
+      
     await storeQuizandQuestions(
       {
         description,
@@ -30,7 +29,6 @@ const createQuiz = async(req: Request, res: Response) => {
         visibility,
         author: req.auth?.uid || "",
         isAiGen: false,
-        thumbnail,
       },
       questions,
     );
@@ -46,7 +44,6 @@ const createQuizWithAi = async (req: Request, res: Response) => {
   try {
     const {qType, qCount, optCount} = req.body
     const pdf = req.uploaded?.find(({fieldname})=>fieldname==="pdf")
-    const thumbnail = req.uploaded?.find(({fieldname})=>fieldname==="thumbnail")
     if (!pdf) return res.status(CLIENT_ERROR.BAD_REQUEST).json({message: "No pdf file uploaded"})
     
     const formdata = new FormData();
@@ -107,7 +104,6 @@ const createQuizWithAi = async (req: Request, res: Response) => {
 
     quizInfo.author = req.auth?.uid || ""
     quizInfo.isAiGen = true
-    quizInfo.thumbnail = thumbnail?.url || null
 
     await storeQuizandQuestions(quizInfo, questions);
 

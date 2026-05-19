@@ -1,3 +1,5 @@
+import GlobalClientWrapper from "@/src/components/layouts/GlobalClientWrapper";
+import TopLoader from "@/src/components/layouts/TopLoader";
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -14,8 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <TopLoader />
         <Providers>
-          {children}
+          <GlobalClientWrapper>
+            {children}
+          </GlobalClientWrapper>
         </Providers>
       </body>
     </html>

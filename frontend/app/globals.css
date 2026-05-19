@@ -18,7 +18,7 @@
 
 body{
   color: var(--text-primary);
-  background: var(--main-tertiary);
+  background: var(--main-secondary-light);
   width: 100vw;
   height: max-content;
   min-height: 540px;
