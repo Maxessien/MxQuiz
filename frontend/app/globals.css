@@ -5,9 +5,9 @@
   --main-primary-light: #8b5cf6;
   --main-primary-lighter: #a78bfa;
   --main-secondary: #030305;
-  --main-secondary-light: #09090b;
-  --main-tertiary: #111116;
-  --main-tertiary-light: #18181b;
+  --main-secondary-light: #090916;
+  --main-tertiary: #0f0f14;
+  --main-tertiary-light: #15151e;
   --text-primary: #ffffff;
   --text-primary-light: #f8fafc;
   --text-errors: #ef4444;
@@ -18,9 +18,9 @@
 
 body{
   color: var(--text-primary);
-  background: var(--main-secondary-light);
+  background: var(--main-tertiary);
   width: 100vw;
-  height: 100vh;
+  height: max-content;
   min-height: 540px;
   overflow-x: hidden;
   padding-top: var(--safe-area-inset-top);

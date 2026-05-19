@@ -9,7 +9,7 @@ export const createUserTable = async () => {
       email VARCHAR(255) UNIQUE NOT NULL,
       avatar_url TEXT,
 
-      role VARCHAR(20) DEFAULT 'student',
+      role VARCHAR(20) DEFAULT 'user' CHECK(role IN ('user', 'admin')),
 
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

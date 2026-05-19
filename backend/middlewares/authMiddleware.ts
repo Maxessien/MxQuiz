@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import logger from "../utils/logger.js";
 import { auth } from "../configs/fbConfigs.js";
-import { DecodedTokenWithClaims } from "../utils/types.js";
 import { CLIENT_ERROR } from "../utils/httpCodes.js";
+import logger from "../utils/logger.js";
+import { DecodedTokenWithClaims } from "../utils/types.js";
 
 const userAuthMiddleware = async (
   req: Request,
@@ -16,7 +16,7 @@ const userAuthMiddleware = async (
     const token = header?.slice(7);
     if (!token) throw new Error("Token missing");
     const decoded = await auth.verifyIdToken(token);
-    req.auth = decoded as DecodedTokenWithClaims;
+    req.auth = {...decoded, token} as DecodedTokenWithClaims;
     next();
   } catch (err) {
     logger.error("User auth middleware", err);
@@ -36,3 +36,4 @@ const verifAdmin = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export { userAuthMiddleware, verifAdmin };
+

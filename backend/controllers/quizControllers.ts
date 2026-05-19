@@ -2,6 +2,7 @@ import axios from "axios";
 import { Request, Response } from "express";
 import { readFile } from "node:fs/promises";
 import { client } from "../configs/groq.js";
+import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
 import logger from "../utils/logger.js";
 import { getPdfSystemsPrompt, storeQuizandQuestions } from "../utils/regHelpers";
@@ -117,5 +118,28 @@ const createQuizWithAi = async (req: Request, res: Response) => {
   }
 };
 
-export { createQuiz, createQuizWithAi };
+const getPublicQuizzes = async(req: Request, res: Response)=>{
+  try {
+    const query = `SELECT * FROM quizzes`
+    const quizzes = await pool.query(query)
+
+    return res.status(SUCCESS.OK).json(quizzes.rows)
+  } catch (err) {
+    logger.error("Get public quizzes", err)
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({message: "Internal server error"})
+  }
+}
+
+const getUserQuizzes = async(req: Request, res: Response)=> {
+  try {
+    const userQuizzes = await pool.query("SELECT * FROM quizzes WHERE author_user_id=$1", [req.auth?.uid])
+
+    return res.status(SUCCESS.OK).json(userQuizzes.rows)
+  } catch (err) {
+    logger.error("Get user quizzes", err)
+    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({message: "Internal server error"})
+  }
+}
+
+export { createQuiz, createQuizWithAi, getPublicQuizzes, getUserQuizzes };
 

@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { createUser, deleteSessionCookie, setLoggedinCookie, updateUser } from "../controllers/authControllers";
+import { createUser, deleteSessionCookie, getUser, setLoggedinCookie, updateUser } from "../controllers/authControllers";
 import { userAuthMiddleware } from "../middlewares/authMiddleware";
 
 
 const router = Router()
 
+router.get("/", userAuthMiddleware, getUser)
 router.post("/", createUser)
 router.post("/:id", userAuthMiddleware, updateUser)
 router.post("/token", userAuthMiddleware, setLoggedinCookie)

@@ -1,8 +1,9 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
-import {  } from "multer";
+import { } from "multer";
 
 export interface DecodedTokenWithClaims extends DecodedIdToken {
   role: "user" | "admin";
+  token: string
 }
 
 export interface CreateUserReqBody {

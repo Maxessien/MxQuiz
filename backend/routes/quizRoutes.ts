@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { multerUpload } from "../configs/fileUploadConfigs";
-import { createQuiz, createQuizWithAi } from "../controllers/quizControllers";
+import { createQuiz, createQuizWithAi, getPublicQuizzes, getUserQuizzes } from "../controllers/quizControllers";
 import { userAuthMiddleware } from "../middlewares/authMiddleware";
 import { handleFileUpload } from "../middlewares/regMiddleware";
 
@@ -21,6 +21,11 @@ router.post(
   handleFileUpload,
   createQuizWithAi,
 );
+
+router.get("/", getPublicQuizzes)
+
+router.get("/:id", userAuthMiddleware, getUserQuizzes)
+
 const quizRoutes = router;
 
 export default quizRoutes;
