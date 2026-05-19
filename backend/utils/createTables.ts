@@ -38,15 +38,11 @@ export const createQuizTable = async () => {
 
       is_ai_generated BOOLEAN DEFAULT FALSE,
 
-      visibility VARCHAR(20) DEFAULT 'public',
+      visibility VARCHAR(20) DEFAULT 'public' CHECK(visibility IN ('public', 'private')),
 
       status VARCHAR(20) DEFAULT 'draft' CHECK(status IN 'draft', 'published'),
 
       time_limit INTEGER,
-
-      question_count INTEGER DEFAULT 0,
-
-      attempt_count INTEGER DEFAULT 0,
 
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
