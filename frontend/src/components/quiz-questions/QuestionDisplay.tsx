@@ -1,11 +1,9 @@
-import { FaFlag, FaRegClock } from "react-icons/fa";
 import { QuizQuestionsMod } from "../../../types/types";
 import Button from "../reusable/Button";
 
 
 interface Props {
   quiz: QuizQuestionsMod;
-  timeRemaining?: number; // In seconds
   onSelectOption: (optionId: string | number) => void;
   onNext: () => void;
   onPrev: () => void;
@@ -16,7 +14,6 @@ interface Props {
 
 const QuestionDisplay = ({
   quiz,
-  timeRemaining,
   onSelectOption,
   onNext,
   onPrev,
@@ -24,35 +21,13 @@ const QuestionDisplay = ({
   isLast,
   onSubmit
 }: Props) => {
-  const formatTime = (seconds?: number) => {
-    if (seconds === undefined) return "--:--";
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
 
   return (
-    <div className="flex-1 flex flex-col bg-(--main-tertiary)/30 border border-(--main-tertiary-light) rounded-3xl p-6 md:p-8 lg:p-10 w-full relative">
-      
-      {/* Quiz Top Action row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <h2 className="text-xl md:text-2xl font-bold text-(--text-primary-light) flex-1 line-clamp-1">
-          {quiz.title || "Quiz"}
-        </h2>
-        
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="flex items-center gap-2 px-4 py-2 bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-full text-(--main-primary-light) font-bold font-mono">
-            <FaRegClock /> {formatTime(timeRemaining)}
-          </div>
-          <button className="flex items-center justify-center p-2.5 rounded-full bg-(--main-tertiary) border border-(--main-tertiary-light) text-(--text-secondary) hover:text-red-400 transition-colors">
-            <FaFlag />
-          </button>
-        </div>
-      </div>
+    <div className="flex-1 flex flex-col bg-(--main-tertiary)/30 border border-(--main-tertiary-light) rounded-3xl p-2 md:p-5 lg:p-7 w-full relative">
 
       {/* Question Block */}
-      <div className="flex flex-col gap-6 mb-10">
-         <h3 className="text-xl md:text-2xl leading-relaxed text-(--text-primary-light) font-medium">
+      <div className="flex flex-col gap-6 mb-8">
+         <h3 className="text-base md:text-xl leading-relaxed text-(--text-primary-light) font-medium">
            {quiz.question_text}
          </h3>
 
@@ -61,7 +36,7 @@ const QuestionDisplay = ({
              <button
                key={opt.option_id}
                onClick={() => onSelectOption(opt.option_id)}
-               className={`flex items-start gap-4 p-5 rounded-2xl border text-left transition-all duration-200
+               className={`flex items-start gap-4 p-2 rounded-2xl border text-left transition-all duration-200
                  ${quiz.answer === opt.option_id 
                    ? "bg-(--main-primary)/10 border-(--main-primary-light) text-(--main-primary-lighter) shadow-[0_0_15px_-5px_var(--main-primary)]" 
                    : "bg-(--main-tertiary)/50 border-(--main-tertiary-light) text-(--text-secondary) hover:border-(--main-primary)/50 hover:bg-(--main-tertiary)"

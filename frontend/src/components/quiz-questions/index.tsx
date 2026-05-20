@@ -1,6 +1,8 @@
 "use client";
 
+import { formatTime } from "@/src/utils/regUtils";
 import { useEffect, useState } from "react";
+import { FaFlag, FaRegClock } from "react-icons/fa";
 import { QuizQuestionsMod } from "../../../types/types";
 import QuestionDisplay from "./QuestionDisplay";
 import QuizNav from "./QuizNav";
@@ -47,15 +49,24 @@ const QuizQuestions = ({q}: {q: QuizQuestionsMod[]}) => {
   if (!questions.length) return null;
 
   return (
-    <div className="w-full min-h-screen bg-(--main-secondary-light) text-(--text-primary) font-sans">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-10">
+    <div className="w-full bg-(--main-secondary-light) text-(--text-primary) font-sans">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4">
         
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-xs font-semibold text-(--text-secondary) mb-8">
-          <span className="hover:text-(--text-primary-light) cursor-pointer">Quizzes</span>
-          <span className="text-(--text-secondary-light)">&gt;</span>
-          <span className="text-(--main-primary-light)">{questions[0].title}</span>
+        {/* Quiz Top Action row */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <h2 className="text-xl md:text-2xl font-bold text-(--text-primary-light) flex-1 line-clamp-1">
+          {questions[currentIdx].title || "Quiz"}
+        </h2>
+        
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-full text-(--main-primary-light) font-bold font-mono">
+            <FaRegClock /> {formatTime(timeLeft)}
+          </div>
+          <button className="flex items-center justify-center p-2.5 rounded-full bg-(--main-tertiary) border border-(--main-tertiary-light) text-(--text-secondary) hover:text-red-400 transition-colors">
+            <FaFlag />
+          </button>
         </div>
+      </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
           
@@ -67,7 +78,6 @@ const QuizQuestions = ({q}: {q: QuizQuestionsMod[]}) => {
 
           <QuestionDisplay 
             quiz={questions[currentIdx]}
-            timeRemaining={timeLeft}
             onSelectOption={handleSelectOption}
             onNext={handleNext}
             onPrev={handlePrev}
