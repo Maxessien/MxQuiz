@@ -1,23 +1,33 @@
-import format from "pg-format";
+import type { Response } from "express";
 import pool from "./../configs/sqlConfig.js";
-import type { Quiz, QuizQuestion, QuizType } from "./types.js";
-import type { Response } from 'express';
+import { SERVER_ERROR } from "./httpCodes.js";
 import logger from "./logger.js";
-import { SERVER_ERROR } from './httpCodes.js';
+import type {
+  Quiz,
+  QuizQuestion,
+  QuizType,
+  SubmittedQuizAnswer,
+} from "./types.js";
+import format from "pg-format";
 
 export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
-const handleAsyncErrors = (res: Response, cb: ()=> Promise<Response<any, any>>, errorLogMessage: string = "Server error")=>{
+const handleAsyncErrors = async (
+  res: Response,
+  cb: () => Promise<Response<any, any>>,
+  errorLogMessage: string = "Server error",
+) => {
   try {
-    return cb()
+    return await cb();
   } catch (err) {
-    logger.error(errorLogMessage, err)
-    return res.status(SERVER_ERROR.INTERNAL_SERVER_ERROR).json({success: false})
+    logger.error(errorLogMessage, err);
+    return res
+      .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
+      .json({ success: false });
   }
-}
-
+};
 const storeQuizandQuestions = async (
   quizInfo: Quiz,
   questions: QuizQuestion[],
@@ -141,18 +151,66 @@ const getDBQuizDetails = async (id: string, userId: string | null) => {
   return quiz;
 };
 
-const getDBQuizQuestions = async(id: string, userId: string | null)=>{
-  
-    const query = `
+const getDBQuizQuestions = async (id: string, userId: string | null) => {
+  const query = `
         SELECT q.question_id, q.question_text, q.options, qz.title, qz.time_limit
         FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
         WHERE q.quiz_id = $1 AND (qz.visibility = 'public' OR qz.author_user_id = $2)
         GROUP BY q.question_id, q.question_text,
           q.options, qz.title, qz.time_limit
-    `
+    `;
 
-    const questions = await pool.query(query, [id, userId])
-    return questions
-}
+  const questions = await pool.query(query, [id, userId]);
+  return questions;
+};
 
-export { getPdfSystemsPrompt, storeQuizandQuestions, getDBQuizDetails, getDBQuizQuestions, handleAsyncErrors };
+const gradeQuizAttempt = async (
+  quizId: string,
+  answers: SubmittedQuizAnswer[],
+  userId: string,
+) => {
+  const answersQuery = await pool.query<{
+    answer: string;
+    question_id: string;
+  }>("SELECT answer, question_id FROM questions WHERE quiz_id = $1", [quizId]);
+
+  if (answersQuery.rows.length === 0) {
+    throw new Error("Quiz not found or has no questions");
+  }
+
+  const validQuestionIds = new Set(answersQuery.rows.map((q) => q.question_id));
+  const invalidAnswers = answers.filter(
+    (a) => !validQuestionIds.has(a.question_id),
+  );
+  if (invalidAnswers.length > 0) {
+    throw new Error("Submitted answers contain invalid question IDs");
+  }
+
+  let agg = 0;
+
+  for (const { answer, question_id } of answersQuery.rows)
+    if (
+      answers.find((a) => a.question_id === question_id)?.answer_id === answer
+    )
+      agg++;
+
+  const score = agg / answersQuery.rows.length / 100;
+
+  const query = `
+    INSERT INTO quiz_attempts AS q (quiz_id, user_id, chosen_answers, score, status)
+    VALUES ($1, $2, $3::jsonb, $4, 'finished')
+  `;
+
+  await pool.query(query, [quizId, userId, answers, score.toFixed(0)]);
+
+  return score;
+};
+
+export {
+  getDBQuizDetails,
+  getDBQuizQuestions,
+  getPdfSystemsPrompt,
+  gradeQuizAttempt,
+  handleAsyncErrors,
+  storeQuizandQuestions,
+};
