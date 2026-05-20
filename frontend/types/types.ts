@@ -39,7 +39,7 @@ export interface QuizQuestionResponse {
 
 export interface QuizQuestionsMod extends QuizQuestionResponse {
   is_answered: boolean,
-  answer: string
+  answer: string | null
 }
 
 export type QuizType = "mcq" | "theory" | "both";
