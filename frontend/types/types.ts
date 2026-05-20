@@ -25,16 +25,21 @@ export interface UserResponse {
 }
 
 export interface QuizQuestionOption {
-  optionId: string;
+  option_id: string;
   value: string | number;
 }
 
 export interface QuizQuestionResponse {
-  type: "mcq" | "theory";
-  questionText: string;
+  question_text: string;
   options: QuizQuestionOption[];
-  answer: string;
-  explanation: string | null;
+  question_id: string
+  title: string,
+  time_limit: number
+}
+
+export interface QuizQuestionsMod extends QuizQuestionResponse {
+  is_answered: boolean,
+  answer: string
 }
 
 export type QuizType = "mcq" | "theory" | "both";

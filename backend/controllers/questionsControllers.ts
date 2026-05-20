@@ -9,12 +9,12 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
       const id =
         typeof req.params.id === "string" ? req.params.id : req.params.id[0];
       const questions = await getDBQuizQuestions(id, null);
-      if (!questions.rows[0])
+      if (questions.rows.length === 0)
         return res
           .status(CLIENT_ERROR.NOT_FOUND)
           .json({ message: "Questions not found" });
 
-      return res.status(SUCCESS.OK).json(questions.rows[0]);
+      return res.status(SUCCESS.OK).json(questions.rows);
     },
     "Get public questions err",
   );
@@ -26,12 +26,12 @@ const getPrivateQuizQuestions = async (req: Request, res: Response) =>
       const id =
         typeof req.params.id === "string" ? req.params.id : req.params.id[0];
       const questions = await getDBQuizQuestions(id, req.auth?.uid ?? null);
-      if (!questions.rows[0])
+      if (questions.rows.length === 0)
         return res
           .status(CLIENT_ERROR.NOT_FOUND)
           .json({ message: "Questions not found" });
 
-      return res.status(SUCCESS.OK).json(questions.rows[0]);
+      return res.status(SUCCESS.OK).json(questions.rows);
     },
     "Get Private Questions err",
   );

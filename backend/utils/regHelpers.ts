@@ -148,7 +148,7 @@ const getDBQuizQuestions = async(id: string, userId: string | null)=>{
         FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
         WHERE q.quiz_id = $1 AND (qz.visibility = 'public' OR qz.author_user_id = $2)
         GROUP BY q.question_id, q.question_text,
-        q.options, qz.title, qz.time_limit
+          q.options, qz.title, qz.time_limit
     `
 
     const questions = await pool.query(query, [id, userId])
