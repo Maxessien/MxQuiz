@@ -6,6 +6,7 @@ import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
 import logger from "../utils/logger.js";
 import {
+  getDBQuizDetails,
   getPdfSystemsPrompt,
   storeQuizandQuestions,
 } from "../utils/regHelpers";
@@ -123,8 +124,6 @@ const createQuizWithAi = async (req: Request, res: Response) => {
     quizInfo.author = req.auth?.uid || "";
     quizInfo.isAiGen = true;
 
-    await storeQuizandQuestions(quizInfo, questions);
-
     return res.status(SUCCESS.CREATED).json({ quizInfo, questions });
   } catch (err) {
     logger.error("Create quiz with AI", err);
@@ -136,14 +135,16 @@ const createQuizWithAi = async (req: Request, res: Response) => {
 
 const getPublicQuizzes = async (req: Request, res: Response) => {
   try {
-    const { sortBy, order, search, type } = req.query;
+    const { sortBy, order, search, type, limit = 20, page = 1 } = req.query;
 
     const allowedType = ["mcq", "theory"];
     let cleanedTypes = allowedType;
     if (typeof type === "string") {
       cleanedTypes = allowedType.includes(type) ? [type] : allowedType;
     } else if (Array.isArray(type)) {
-      const validTypes = type.filter(t => typeof t === "string" && allowedType.includes(t)) as string[];
+      const validTypes = type.filter(
+        (t) => typeof t === "string" && allowedType.includes(t),
+      ) as string[];
       if (validTypes.length > 0) cleanedTypes = validTypes;
     }
 
@@ -153,31 +154,47 @@ const getPublicQuizzes = async (req: Request, res: Response) => {
         ? sortBy
         : allowedSorts[1]; // default to date
 
-    const cleanedOrder = typeof order === "string" && ["asc", "desc"].includes(order.toLowerCase()) ? order.toUpperCase() : "DESC";
+    const cleanedOrder =
+      typeof order === "string" && ["asc", "desc"].includes(order.toLowerCase())
+        ? order.toUpperCase()
+        : "DESC";
+
+    const cleanedLimit = Number.isFinite(Number(limit)) ? Number(limit) : 20;
+    const cleanedPage = Number.isFinite(Number(page))
+      ? (Number(page) - 1) * cleanedLimit
+      : 1;
 
     const sortMap = {
       ratings: "average_rating",
       date: "q.created_at",
-      attempts: "attempts_count"
+      attempts: "attempts_count",
     };
 
-    const searchParam = typeof search === "string" && search.trim() !== "" ? `%${search.trim()}%` : "%";
+    const searchParam =
+      typeof search === "string" && search.trim() !== ""
+        ? `%${search.trim()}%`
+        : "%";
 
     const query = `
       SELECT 
         q.quiz_id, q.title, q.description, q.time_limit, q.is_ai_generated, q.created_at,
-        u.name as author_name, u.avatar_url as author_avatar,
+        (SELECT COUNT(*)::int FROM quizzes) as total_rows,
         (SELECT COUNT(*)::int FROM questions WHERE quiz_id = q.quiz_id) as question_count,
         (SELECT COALESCE(AVG(rating), 0)::float FROM quiz_comments WHERE quiz_id = q.quiz_id) as average_rating,
         (SELECT COUNT(*)::int FROM quiz_attempts WHERE quiz_id = q.quiz_id) as attempts_count
       FROM quizzes q
-      LEFT JOIN users u ON q.author_user_id = u.user_id
       WHERE q.visibility = 'public' AND q.status = 'published'
         AND EXISTS (SELECT 1 FROM questions qs WHERE qs.quiz_id = q.quiz_id AND qs.type = ANY($1))
         AND (q.title ILIKE $2 OR q.description ILIKE $2)
       ORDER BY ${sortMap[cleanedSort as keyof typeof sortMap]} ${cleanedOrder}
+      LIMIT $3 OFFSET $4
     `;
-    const quizzes = await pool.query(query, [cleanedTypes, searchParam]);
+    const quizzes = await pool.query(query, [
+      cleanedTypes,
+      searchParam,
+      cleanedLimit,
+      cleanedPage,
+    ]);
 
     return res.status(SUCCESS.OK).json(quizzes.rows);
   } catch (err) {
@@ -204,5 +221,51 @@ const getUserQuizzes = async (req: Request, res: Response) => {
   }
 };
 
-export { createQuiz, createQuizWithAi, getPublicQuizzes, getUserQuizzes };
+const getPublicQuizDetails = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const quiz = await getDBQuizDetails(typeof id === "string" ? id : id[0], null)
 
+    if (!quiz.rows[0])
+      return res
+        .status(CLIENT_ERROR.NOT_FOUND)
+        .json({ message: "Quiz not found" });
+
+    return res.status(SUCCESS.OK).json(quiz.rows[0]);
+  } catch (err) {
+    logger.error("Get quiz details", err);
+    
+    return res
+      .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+  }
+};
+
+const getPrivateQuizDetails = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+    const quiz = await getDBQuizDetails(typeof id === "string" ? id : id[0], req.auth?.aud || null)
+
+    if (!quiz.rows[0])
+      return res
+        .status(CLIENT_ERROR.NOT_FOUND)
+        .json({ message: "Quiz not found" });
+
+    return res.status(SUCCESS.OK).json(quiz.rows[0]);
+  } catch (err) {
+    logger.error("Get quiz details", err);
+    return res
+      .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+  }
+};
+
+
+export {
+  createQuiz,
+  createQuizWithAi,
+  getPublicQuizzes,
+  getUserQuizzes,
+  getPublicQuizDetails,
+  getPrivateQuizDetails
+};

@@ -1,11 +1,11 @@
 "use client";
-import AboutQuiz from "@/src/components/create-quiz/AboutQuiz";
-import CreatorCard from "@/src/components/create-quiz/CreatorCard";
-import { mockQuizDetails } from "@/src/components/create-quiz/MockData";
-import QuizHeader from "@/src/components/create-quiz/QuizHeader";
-import QuizTabs from "@/src/components/create-quiz/QuizTabs";
-import ReviewsSection from "@/src/components/create-quiz/ReviewsSection";
-import StartQuizAction from "@/src/components/create-quiz/StartQuizAction";
+import AboutQuiz from "@/src/components/quiz-info/AboutQuiz";
+import CreatorCard from "@/src/components/quiz-info/CreatorCard";
+import { mockQuizDetails } from "@/src/components/quiz-info/MockData";
+import QuizHeader from "@/src/components/quiz-info/QuizHeader";
+import QuizTabs from "@/src/components/quiz-info/QuizTabs";
+import ReviewsSection from "@/src/components/quiz-info/ReviewsSection";
+import StartQuizAction from "@/src/components/quiz-info/StartQuizAction";
 import PublicAppLayout from "@/src/components/layouts/PublicAppLayout";
 import { useState } from "react";
 import { FaUnlock } from "react-icons/fa";

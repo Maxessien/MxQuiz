@@ -27,7 +27,6 @@ const QuizCard = (props: QuizCardProps) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex gap-4 items-center">
           <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
-            {/* Using first letter as a placeholder since schema lacks strict icons */}
             {title.substring(0, 1).toUpperCase()}
           </div>
           <div className="flex flex-col">

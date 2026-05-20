@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppSelector } from "@/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
@@ -31,6 +32,7 @@ const NavItem = ({
 const PublicAppLayout = ({ children }: { children: ReactNode }) => {
   const [showNav, setShowNav] = useState(false)
   const pathname = usePathname()
+  const {width} = useAppSelector(state=> state.app)
   
   const router = useRouter();
   return (
@@ -38,8 +40,8 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
       <header className="w-full bg-(--main-secondary-light) px-3 sm:px-5 lg:px-8 py-4 flex justify-between items-center gap-2">
         <div className="flex-1 flex justify-between items-center gap-2 max-w-5xl">
           <h1 className="text-2xl font-semibold">Max Quiz</h1>
-          <button onClick={()=> setShowNav(!showNav)} className="font-medium sm:hidden z-9999 text-3xl">{showNav ? <HiX /> : <HiMenu />}</button> 
-          <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-999 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-center items-center sm:justify-end">
+          <button onClick={()=> setShowNav(!showNav)} className="font-medium cursor-pointer sm:hidden z-999 text-3xl">{showNav ? <HiX /> : <HiMenu />}</button> 
+          {(showNav || width > 640) &&  <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-center items-center sm:justify-end">
             <ul className="sm:w-full w-9/10 bg-(--main-secondary-light) px-3 sm:bg-transparent max-w-xl rounded-md flex-col sm:flex-row flex justify-end items-center gap-4 py-5 sm:p-0 sm:gap-2">
               <li>
                 <NavItem location="/" text="Home" />
@@ -69,7 +71,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                 Sign Up
               </Button>
             </ul>
-          </div>
+          </div>}
         </div>
         <div className="hidden md:flex justify-center items-center gap-2">
           <Button

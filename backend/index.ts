@@ -2,7 +2,7 @@ import { config } from "dotenv";
 config();
 
 import {} from "multer";
-import { startEmulator } from "offline-cloudinary";
+// import { startEmulator } from "offline-cloudinary";
 import app from "./configs/serverConfig.js";
 import authRoutes from "./routes/authRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
@@ -35,5 +35,5 @@ const PORT = process.env.PORT || 5050;
 
 app.listen(Number(PORT), "0.0.0.0", async () => {
   logger.info("App listening on", PORT);
-  if (IS_DEVELOPMENT) await startEmulator();
+  // if (IS_DEVELOPMENT) await startEmulator();
 });
