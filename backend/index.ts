@@ -8,8 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import { createAllTables } from "./utils/createTables.js";
 import logger from "./utils/logger.js";
-import { IS_DEVELOPMENT } from "./utils/regHelpers.js";
 import { DecodedTokenWithClaims, RequestImages } from "./utils/types.js";
+import questionsRoutes from "./routes/questionsRoutes.js";
 
 declare global {
   namespace Express {
@@ -24,6 +24,7 @@ declare global {
 
 app.use("/auth", authRoutes);
 app.use("/quiz", quizRoutes);
+app.use("/questions", questionsRoutes);
 
 try {
   await createAllTables();

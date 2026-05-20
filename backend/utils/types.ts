@@ -40,4 +40,8 @@ export interface QuizQuestion {
   explanation: string | null
 }
 
+export interface UpdateQuestionReq extends QuizQuestion {
+  question_id: string
+}
+
 export type QuizType = "mcq" | "theory" | "both"
