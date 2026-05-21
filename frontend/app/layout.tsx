@@ -3,6 +3,7 @@ import TopLoader from "@/src/components/layouts/TopLoader";
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "MxQuiz",
@@ -18,9 +19,14 @@ export default function RootLayout({
       <body>
         <TopLoader />
         <Providers>
-          <GlobalClientWrapper>
-            {children}
-          </GlobalClientWrapper>
+          <GlobalClientWrapper>{children}</GlobalClientWrapper>
+          <ToastContainer
+            draggable
+            newestOnTop
+            pauseOnHover
+            position="top-center"
+            theme="colored"
+          />
         </Providers>
       </body>
     </html>

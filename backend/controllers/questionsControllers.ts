@@ -75,13 +75,13 @@ const gradeQuestionAnswers = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
-      const { answers, attemptToken, quiz_id }: SubmittedQuizBody = req.body;
+      const { answers, attempt_token, quiz_id }: SubmittedQuizBody = req.body;
 
       if (!process.env.JWT_KEY) {
         throw new Error("JWT_KEY environment variable is not configured");
       }
 
-      const verified = jwt.verify(attemptToken, process.env.JWT_KEY);
+      const verified = jwt.verify(attempt_token, process.env.JWT_KEY);
       const token = typeof verified === 'string' ? verified : JSON.stringify(verified);
       const decoded: AttemptToken = JSON.parse(token);
 

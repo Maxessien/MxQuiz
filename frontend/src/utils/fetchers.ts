@@ -3,6 +3,12 @@ import { authApi, regApi } from "./api";
 import logger from "./logger";
 import { QuizQuestionResponse } from "@/types/types";
 
+
+export interface SubmittedQuizAnswer {
+  question_id: string;
+  answer_id: string;
+}
+
 export type QuizSortBy = "ratings" | "date" | "attempts";
 export type QuizSortOrder = "asc" | "desc";
 export type QuizFilterType = "mcq" | "theory";
@@ -44,12 +50,32 @@ export const getQuizQuestions = async (
   try {
     const questions =
       type === "private"
-        ? await authApi(idToken || "").get<QuizQuestionResponse[]>(`/questions/private/${quizId}`)
-        : await regApi.get<QuizQuestionResponse[]>(`/questions/${quizId}`);
+        ? await authApi(idToken || "").get<{
+            attempt_token: string;
+            questions: QuizQuestionResponse[];
+          }>(`/questions/private/${quizId}`)
+        : await regApi.get<{
+            attempt_token: string;
+            questions: QuizQuestionResponse[];
+          }>(`/questions/${quizId}`);
 
-    return questions.data
+    return questions.data;
   } catch (err) {
     logger.error("Get Questions", err);
     return null;
   }
+};
+
+export const submitQuiz = async (
+  answers: SubmittedQuizAnswer[],
+  quizId: string,
+  token: string,
+) => {
+  const { data } = await regApi.post<{ score: number }>("/questions/grade", {
+    answers,
+    attempt_token: token,
+    quiz_id: quizId,
+  });
+
+  return data.score;
 };

@@ -59,5 +59,5 @@ export interface SubmittedQuizAnswer {
 export interface SubmittedQuizBody {
   quiz_id: string;
   answers: SubmittedQuizAnswer[];
-  attemptToken: string;
+  attempt_token: string;
 }

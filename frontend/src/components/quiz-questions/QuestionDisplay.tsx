@@ -10,6 +10,7 @@ interface Props {
   isFirst: boolean;
   isLast: boolean;
   onSubmit: () => void;
+  isSubmitting: boolean
 }
 
 const QuestionDisplay = ({
@@ -19,7 +20,7 @@ const QuestionDisplay = ({
   onPrev,
   isFirst,
   isLast,
-  onSubmit
+  onSubmit, isSubmitting
 }: Props) => {
 
   return (
@@ -74,7 +75,7 @@ const QuestionDisplay = ({
            </Button>
          ) : (
            <Button color="primary" attrs={{onClick: onSubmit}} className="px-10 shadow-[0_0_20px_-5px_var(--main-primary)]">
-             Submit Quiz
+             {isSubmitting ? "Submitting..." : "Submit Quiz"}
            </Button>
          )}
       </div>

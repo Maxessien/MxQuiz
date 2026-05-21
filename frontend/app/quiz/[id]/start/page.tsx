@@ -12,7 +12,7 @@ const QuizQuestionPage = async({params}: {params: Promise<{id: string}>}) => {
   
   return (
     <PublicAppLayout>
-      <QuizQuestions q={questions.map((q)=> ({...q, is_answered: false, answer: null}))} />
+      <QuizQuestions quizId={par.id} token={questions.attempt_token} q={questions.questions.map((q)=> ({...q, is_answered: false, answer: null}))} />
     </PublicAppLayout>
   );
 };
