@@ -1,14 +1,15 @@
 "use client";
 
-import { FormFields } from "@/types/types";
-import AuthFormWrapper from "./AuthFormWrapper";
-import { toast } from "react-toastify";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { verifyAuthCookie } from "@/src/actions/auth";
 import { auth } from "@/src/fbConfig";
 import { getFirebaseErrorMessage } from "@/src/utils/fbErrors";
 import { useAppSelector } from "@/store";
+import { FormFields } from "@/types/types";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "nextjs-toploader/app";
-import {useEffect} from "react"
+import { useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import AuthFormWrapper from "./AuthFormWrapper";
 
 const Login = () => {
   const { userId, isLoggedIn } = useAppSelector((state) => state.user);
@@ -20,15 +21,23 @@ const Login = () => {
     return;
   };
 
+  const loginTimeoutId = useRef<NodeJS.Timeout>(null)
+
 	useEffect(()=>{
-		if (isLoggedIn) router.push(`/${userId}`);
+    if (loginTimeoutId.current) clearTimeout(loginTimeoutId.current)
+
+	  loginTimeoutId.current = setTimeout(async()=>{
+      const hasCookie = await verifyAuthCookie()
+      console.log(isLoggedIn, hasCookie)
+      if (isLoggedIn && hasCookie) router.push(`/${userId}`)
+    }, 500)
     
 	}, [isLoggedIn, userId, router])
 
   return (
     <section className="w-full max-w-md mx-auto mt-12">
       <div className="text-center mb-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-(--text-primary) mb-2">
+        <h2 className="text-xl md:text-2xl font-bold text-(--text-primary) mb-2">
           Welcome Back
         </h2>
         <p className="text-sm md:text-base text-(--text-primary)">

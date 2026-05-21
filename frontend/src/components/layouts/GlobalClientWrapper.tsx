@@ -1,7 +1,7 @@
 "use client";
 
 import { auth } from "@/src/fbConfig";
-import { useAuthStateChange, useIdTokenChange } from "@/src/hooks/useFbEvents";
+import { useAuthStateChange } from "@/src/hooks/useFbEvents";
 import { setWindowSize } from "@/store/slices/appSlice";
 import { onAuthStateChanged, onIdTokenChanged } from "firebase/auth";
 import { ReactNode, useEffect } from "react";
@@ -11,17 +11,16 @@ import Loader from "../reusable/Loader";
 const GlobalClientWrapper = ({ children }: { children: ReactNode }) => {
   const {
     query: { isFetching },
-    mutation,
+    mutation: {mutate},
   } = useAuthStateChange();
-  const { mutateAsync } = useIdTokenChange();
   const dispatch = useDispatch();
 
   useEffect(() => {
     const authUnsubscriber = onAuthStateChanged(auth, (user) =>
-      mutation.mutateAsync(user),
+      mutate(user),
     );
     const tokenUnsubcriber = onIdTokenChanged(auth, (user) =>
-      mutateAsync(user),
+      mutate(user),
     );
 
     const handleResize = () => {

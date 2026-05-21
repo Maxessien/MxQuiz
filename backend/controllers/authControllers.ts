@@ -9,6 +9,7 @@ import { IS_DEVELOPMENT, SESSION_COOKIE_NAME } from "../utils/regHelpers.js";
 import { CreateUserReqBody } from "../utils/types.js";
 
 const createUser = async (req: Request, res: Response) => {
+  let user: UserRecord | null = null
   try {
     const { email, name, password } = req.body as CreateUserReqBody;
     if (!email || !name || !password)
@@ -16,7 +17,7 @@ const createUser = async (req: Request, res: Response) => {
         .status(CLIENT_ERROR.BAD_REQUEST)
         .json({ message: "Incomplete form" });
 
-    const user = await auth.createUser({ email, password, displayName: name });
+    user = await auth.createUser({ email, password, displayName: name });
     auth.setCustomUserClaims(user.uid, { role: "user" });
 
     const query = `INSERT INTO users (name, email, role, user_id) VALUES ($1, $2, $3, $4)`;
@@ -25,6 +26,7 @@ const createUser = async (req: Request, res: Response) => {
     return res.status(SUCCESS.CREATED).json({ message: "User created" });
   } catch (err) {
     logger.log("Create user", err);
+    if (user?.uid) await auth.deleteUser(user.uid)
     return res
       .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
       .json({ message: "Internal server error" });
@@ -58,7 +60,7 @@ const setLoggedinCookie = async (req: Request, res: Response) => {
     res.cookie(SESSION_COOKIE_NAME, token, {
       maxAge: 60 * 60 * 1000,
       sameSite: "none",
-      secure: !IS_DEVELOPMENT,
+      secure: true,
       httpOnly: !IS_DEVELOPMENT,
     });
 
@@ -116,10 +118,10 @@ const updateUser = async (req: Request, res: Response) => {
     });
 
     if (!user) throw new Error("Couldn't update user");
-    client.query("COMMIT");
+    await client.query("COMMIT");
     res.status(SUCCESS.OK).json({ message: "User updated" });
   } catch (err) {
-    if (client) client.query("ROLLBACK");
+    if (client) await client.query("ROLLBACK");
     logger.error("Update user error", err);
     return res
       .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)

@@ -1,9 +1,9 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { Errors, FieldWrapper, Input, Label } from "./AuthFormFields";
 import { authFieldsRegisters } from "@/src/utils/regUtils";
 import { AuthFormType, Fields, FormFields } from "@/types/types";
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import Button from "../reusable/Button";
+import { Errors, FieldWrapper, Input, Label } from "./AuthFormFields";
 
 
 const AuthFormWrapper = ({
@@ -27,8 +27,8 @@ const AuthFormWrapper = ({
   });
 
   const typeMappings: Record<AuthFormType, {active: string, inActive: string}> = {
-    login: {active: "Sign In", inActive: "Signing In..."},
-    register: {active: "Sign Up", inActive: "Signing Up..."}
+    login: {inActive: "Sign In", active: "Signing In..."},
+    register: {inActive: "Sign Up", active: "Signing Up..."}
   }
 
   const { mutateAsync, isPending } = useMutation<void, Error, FormFields>({

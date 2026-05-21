@@ -2,7 +2,6 @@ import { useAppSelector } from "@/store";
 import { defaultUserState, setUserState } from "@/store/slices/userSlice";
 import { UserResponse } from "@/types/types";
 import {
-  MutationOptions,
   UndefinedInitialDataOptions,
   useMutation,
   UseMutationOptions,
@@ -20,7 +19,7 @@ export const useAuthStateChange = (
     UserResponse,
     string[]
   >,
-  mutationOptions?: MutationOptions<{
+  mutationOptions?: UseMutationOptions<{
     token: string;
     id: string;
 }, Error, User | null, unknown>
@@ -98,20 +97,4 @@ export const useAuthStateChange = (
   ]);
 
   return { query, mutation };
-};
-
-export const useIdTokenChange = (
-  mutationOptions?: UseMutationOptions<void, Error, User | null, unknown>,
-) => {
-  const mutation = useMutation({
-    mutationFn: async (user: User | null) => {
-      if (user) {
-        const token = await user.getIdToken();
-        await authApi(token).post("/auth/token");
-      }
-    },
-    ...mutationOptions,
-  });
-
-  return { ...mutation };
 };
