@@ -2,17 +2,20 @@ import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Errors, FieldWrapper, Input, Label } from "./AuthFormFields";
 import { authFieldsRegisters } from "@/src/utils/regUtils";
-import { Fields, FormFields } from "@/types/types";
+import { AuthFormType, Fields, FormFields } from "@/types/types";
 import Button from "../reusable/Button";
+
 
 const AuthFormWrapper = ({
   submitFn,
   fieldsToInclude,
   mutationOptions,
+  type,
 }: {
   submitFn: (data: FormFields) => Promise<void>;
   mutationOptions?: UseMutationOptions<void, Error, FormFields, unknown>;
   fieldsToInclude: Fields[];
+  type: AuthFormType
 }) => {
   const {
     handleSubmit,
@@ -23,13 +26,18 @@ const AuthFormWrapper = ({
     mode: "onTouched",
   });
 
+  const typeMappings: Record<AuthFormType, {active: string, inActive: string}> = {
+    login: {active: "Sign In", inActive: "Signing In..."},
+    register: {active: "Sign Up", inActive: "Signing Up..."}
+  }
+
   const { mutateAsync, isPending } = useMutation<void, Error, FormFields>({
     mutationFn: (data) => submitFn(data),
     ...mutationOptions,
   });
   return (
     <form
-      className="flex flex-col gap-6 w-full max-w-md mx-auto p-6 shadow-[2px_3px_10px_-3px_var(--text-primary-light)] rounded-lg"
+      className="flex flex-col gap-6 w-full max-w-md mx-auto p-6 shadow-[2px_3px_3px_4px_var(--main-tertiary-light)] rounded-lg"
       onSubmit={handleSubmit((data) => mutateAsync(data))}
     >
       {fieldsToInclude.includes("name") && (
@@ -38,26 +46,26 @@ const AuthFormWrapper = ({
           <Input
             attrs={{
               id: "name",
-              ...register("name", authFieldsRegisters.name),
+              ...register("name", authFieldsRegisters.name[type]),
             }}
           />
           {errors.name && <Errors error={errors.name.message || ""} />}
         </FieldWrapper>
       )}
-      
+
       {fieldsToInclude.includes("email") && (
         <FieldWrapper>
           <Label attrs={{ htmlFor: "email" }}>Email</Label>
           <Input
             attrs={{
               id: "email",
-              ...register("email", authFieldsRegisters.email),
+              ...register("email", authFieldsRegisters.email[type]),
             }}
           />
           {errors.email && <Errors error={errors.email.message || ""} />}
         </FieldWrapper>
       )}
-      
+
       {fieldsToInclude.includes("password") && (
         <FieldWrapper>
           <Label attrs={{ htmlFor: "password" }}>Password</Label>
@@ -65,7 +73,7 @@ const AuthFormWrapper = ({
             attrs={{
               id: "password",
               type: "password",
-              ...register("password", authFieldsRegisters.password),
+              ...register("password", authFieldsRegisters.password[type]),
             }}
           />
           {errors.password && <Errors error={errors.password.message || ""} />}
@@ -74,9 +82,10 @@ const AuthFormWrapper = ({
 
       <Button
         attrs={{ type: "submit", disabled: isPending }}
-        className="mt-2 w-full"
+        className="mt-2 mx-auto"
+        width="w-full max-w-lg"
       >
-        {isPending ? "Submitting..." : "Submit"}
+        {isPending ? typeMappings[type].active : typeMappings[type].inActive}
       </Button>
     </form>
   );

@@ -1,3 +1,6 @@
+import { config } from "dotenv";
+config();
+
 import express from "express";
 import rateLimiter from "express-rate-limit";
 import cors from "cors";

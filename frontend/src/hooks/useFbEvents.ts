@@ -2,6 +2,7 @@ import { useAppSelector } from "@/store";
 import { defaultUserState, setUserState } from "@/store/slices/userSlice";
 import { UserResponse } from "@/types/types";
 import {
+  MutationOptions,
   UndefinedInitialDataOptions,
   useMutation,
   UseMutationOptions,
@@ -19,6 +20,10 @@ export const useAuthStateChange = (
     UserResponse,
     string[]
   >,
+  mutationOptions?: MutationOptions<{
+    token: string;
+    id: string;
+}, Error, User | null, unknown>
 ) => {
   const { isLoggedIn, userId, idToken } = useAppSelector((state) => state.user);
 
@@ -38,26 +43,35 @@ export const useAuthStateChange = (
   });
 
   const handleChange = async (user: User | null) => {
-      if (user) {
-        const token = await user.getIdToken();
-        const id = user.uid;
-
-        dispatch(
-          setUserState({
-            avatarUrl: "",
-            email: "",
-            idToken: token,
-            isLoggedIn: true,
-            name: "",
-            role: "user",
-            userId: id,
-          }),
-        );
-      } else {
-        dispatch(setUserState(defaultUserState));
-        await regApi.delete("/auth/token", { withCredentials: true });
-      }
+    if (user) {
+      const token = await user.getIdToken();
+      await authApi(token).post("/auth/token");
+      const id = user.uid;
+      return { token, id };
+    } else {
+      dispatch(setUserState(defaultUserState));
+      await regApi.delete("/auth/token", { withCredentials: true });
+      return {token: "", id: ""}
+    }
   };
+
+  const mutation = useMutation({
+    ...mutationOptions,
+    mutationFn: handleChange,
+    onSuccess: ({ token, id }) => {
+      dispatch(
+        setUserState({
+          avatarUrl: "",
+          email: "",
+          idToken: token,
+          isLoggedIn: true,
+          name: "",
+          role: "user",
+          userId: id,
+        }),
+      );
+    },
+  });
 
   useEffect(() => {
     if (query.data) {
@@ -83,10 +97,12 @@ export const useAuthStateChange = (
     isLoggedIn,
   ]);
 
-  return { ...query, handleChange };
+  return { query, mutation };
 };
 
-export const useIdTokenChange = (mutationOptions?: UseMutationOptions<void, Error, User | null, unknown>) => {
+export const useIdTokenChange = (
+  mutationOptions?: UseMutationOptions<void, Error, User | null, unknown>,
+) => {
   const mutation = useMutation({
     mutationFn: async (user: User | null) => {
       if (user) {
@@ -94,9 +110,8 @@ export const useIdTokenChange = (mutationOptions?: UseMutationOptions<void, Erro
         await authApi(token).post("/auth/token");
       }
     },
-    ...mutationOptions
+    ...mutationOptions,
   });
 
-  return {...mutation}
-
+  return { ...mutation };
 };

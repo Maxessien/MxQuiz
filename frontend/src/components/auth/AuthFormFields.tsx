@@ -69,11 +69,9 @@ const FieldWrapper = ({
   extraClassNames?: string;
   children: ReactNode;
 }) => {
-  const {register} = useForm()
   return (
     <div
       {...attrs}
-      {...register("", {})}
       className={
         "w-full flex flex-col gap-2 justify-start items-start " +
         extraClassNames

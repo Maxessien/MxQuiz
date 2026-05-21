@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { auth } from "@/src/fbConfig";
 import { useAuthStateChange, useIdTokenChange } from "@/src/hooks/useFbEvents";
@@ -9,34 +9,47 @@ import { useDispatch } from "react-redux";
 import Loader from "../reusable/Loader";
 
 const GlobalClientWrapper = ({ children }: { children: ReactNode }) => {
-  const { handleChange, isFetching } = useAuthStateChange();
-  const {mutateAsync} = useIdTokenChange()
-  const dispatch = useDispatch()
+  const {
+    query: { isFetching },
+    mutation,
+  } = useAuthStateChange();
+  const { mutateAsync } = useIdTokenChange();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const authUnsubscriber = onAuthStateChanged(auth, handleChange);
-    const tokenUnsubcriber = onIdTokenChanged(auth, mutateAsync)
+    const authUnsubscriber = onAuthStateChanged(auth, (user) =>
+      mutation.mutateAsync(user),
+    );
+    const tokenUnsubcriber = onIdTokenChanged(auth, (user) =>
+      mutateAsync(user),
+    );
 
-    const handleResize = ()=>{
-      dispatch(setWindowSize({height: window.innerHeight, width: window.innerWidth}))
-    }
+    const handleResize = () => {
+      dispatch(
+        setWindowSize({ height: window.innerHeight, width: window.innerWidth }),
+      );
+    };
 
-    window.addEventListener("resize", ()=>handleResize())
+    window.addEventListener("resize", () => handleResize());
 
-    handleResize()
+    handleResize();
 
-    return (() => {
+    return () => {
       authUnsubscriber();
-      tokenUnsubcriber()
-      window.removeEventListener("resize", ()=>handleResize())
-    })();
+      tokenUnsubcriber();
+      window.removeEventListener("resize", () => handleResize());
+    };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return <>
-{isFetching && <Loader size="w-screen h-screen" position="top-0 left-0" />}
-  {children}
-  </>;
+  return (
+    <>
+      {isFetching && (
+        <Loader size="w-screen h-screen" position="top-0 left-0" />
+      )}
+      {children}
+    </>
+  );
 };
 
 export default GlobalClientWrapper;

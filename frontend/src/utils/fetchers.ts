@@ -1,8 +1,8 @@
 import { QuizCardProps } from "@/types/componentTypes";
 import { authApi, regApi } from "./api";
 import logger from "./logger";
-import { QuizQuestionResponse } from "@/types/types";
-
+import { QuizQuestionResponse, UserResponse } from "@/types/types";
+import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 export interface SubmittedQuizAnswer {
   question_id: string;
@@ -78,4 +78,19 @@ export const submitQuiz = async (
   });
 
   return data.score;
+};
+
+export const getUserServerSide = async (
+  token: RequestCookie | undefined,
+): Promise<UserResponse | null> => {
+  try {
+    if (!token?.value) throw new Error("No token found");
+
+    const user = await authApi(token.value).get<UserResponse>("/auth");
+
+    return user.data;
+  } catch (err) {
+    logger.error("Get user server", err);
+    return null;
+  }
 };

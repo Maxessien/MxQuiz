@@ -52,3 +52,5 @@ export interface FormFields {
 }
 
 export type Fields = "email" | "name" | "password"
+
+export type AuthFormType = "register" | "login"

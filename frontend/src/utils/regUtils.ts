@@ -1,5 +1,8 @@
-import { Fields, FormFields } from "@/types/types";
+import { AuthFormType, Fields, FormFields } from "@/types/types";
 import { RegisterOptions } from "react-hook-form";
+
+
+export const SESSION_COOKIE_NAME = "user_session_cookie";
 
 export const formatTime = (seconds?: number) => {
   if (seconds === undefined) return "--:--";
@@ -8,16 +11,16 @@ export const formatTime = (seconds?: number) => {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
-export const authFieldsRegisters: Record<Fields, RegisterOptions<FormFields, Fields>> = {
-  email: {
+export const authFieldsRegisters: Record<Fields, Record<AuthFormType, RegisterOptions<FormFields, Fields>>> = {
+  email: {login: {required: "Email is required"}, register: {
     required: "Email is required",
     pattern: {
       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
       message: "Invalid email",
     },
-  },
+  }},
 
-  name: {
+  name: {login: {required: "Name is required"}, register: {
     required: "Name is required",
     minLength: {value: 2, message: "Name cannot be less than 2 characters"},
     maxLength: {value: 35, message: "Name cannot be greater than 35 characters"},
@@ -25,9 +28,9 @@ export const authFieldsRegisters: Record<Fields, RegisterOptions<FormFields, Fie
       value: /^[a-zA-Z\s'-]+$/,
       message: "Name can only contain letters, spaces, apostrophes, and hyphens"
     }
-  },
+  }},
 
-  password: {
+  password: {login: {required: "Password is required"}, register: {
     required: "Password is required",
     minLength: {value: 8, message: "Password must be at least 8 characters long"},
     validate: (val) => {
@@ -39,5 +42,5 @@ export const authFieldsRegisters: Record<Fields, RegisterOptions<FormFields, Fie
 
       return true;
     }
-  }
+  }}
 };
