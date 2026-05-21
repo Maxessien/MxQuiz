@@ -3,12 +3,14 @@
 import { submitQuiz } from "@/src/utils/fetchers";
 import { formatTime } from "@/src/utils/regUtils";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "nextjs-toploader/app";
 import { useEffect, useState } from "react";
 import { FaFlag, FaRegClock } from "react-icons/fa";
-import { QuizQuestionsMod } from "../../../types/types";
+import { toast } from "react-toastify";
+import { QuestionResult, QuizQuestionsMod } from "../../../types/types";
 import QuestionDisplay from "./QuestionDisplay";
 import QuizNav from "./QuizNav";
-import { toast } from "react-toastify";
+import Result from "./Result";
 
 const QuizQuestions = ({
   q,
@@ -31,6 +33,7 @@ const QuizQuestions = ({
   const [questions, setQuestions] = useState<QuizQuestionsMod[]>(
     cache ? cache.questions : q,
   );
+  const [submitted, setSubmitted] = useState<{isSubmitted: boolean, result: {score: number, val: QuestionResult[]}}>({isSubmitted: false, result: {score: 0, val: []}})
   const [currentIdx, setCurrentIdx] = useState(0);
   const [timeLeft, setTimeLeft] = useState(cache ? cache.timeLeft : (q[0]?.time_limit || 0) * 60);
 
@@ -83,11 +86,17 @@ const QuizQuestions = ({
       toast.error("Failed to submit, try again later");
     },
 
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Remove cache when successfully submitted
       localStorage.removeItem(quizId);
+
+      setSubmitted({isSubmitted: true, result: {score: data.score, val: data.result}})
     },
   });
+
+  const router = useRouter()
+
+  if (submitted.isSubmitted) return <Result onBack={()=> router.back()} onRetake={()=> router.refresh()} results={submitted.result.val} score={submitted.result.score} />
 
   if (!questions.length) return null;
 

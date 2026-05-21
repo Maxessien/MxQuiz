@@ -1,14 +1,16 @@
 import type { Response } from "express";
+import format from "pg-format";
 import pool from "./../configs/sqlConfig.js";
 import { SERVER_ERROR } from "./httpCodes.js";
 import logger from "./logger.js";
 import type {
+  QuestionResult,
+  QuestionResultWithType,
   Quiz,
   QuizQuestion,
   QuizType,
-  SubmittedQuizAnswer,
+  SubmittedQuizAnswer
 } from "./types.js";
-import format from "pg-format";
 
 export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
@@ -164,15 +166,44 @@ const getDBQuizQuestions = async (id: string, userId: string | null) => {
   return questions;
 };
 
+const gradeMcqAnswers = async (
+  quizId: string,
+  userAnswers: SubmittedQuizAnswer[]
+): Promise<{result: QuestionResult[], score: number}> => {
+  const query = `
+    SELECT question_id, answer, explanation, question_text, type
+    FROM questions
+    WHERE quiz_id = $1 AND type = 'mcq'
+  `;
+  const { rows } = await pool.query<QuestionResultWithType>(query, [quizId]);
+
+  let agg = 0
+
+  const result =  rows.map((dbQuestion) => {
+    const submitted = userAnswers.find((ans) => ans.question_id === dbQuestion.question_id);
+    if(submitted?.answer_id === dbQuestion.answer) agg++
+    return {
+      question_id: dbQuestion.question_id,
+      answer: dbQuestion.answer,
+      explanation: dbQuestion.explanation,
+      question_text: dbQuestion.question_text,
+      userAnswer: submitted?.answer_id || "",
+    };
+  });
+
+  const score = rows.length > 0 ? (agg / rows.length) * 100 : 0;
+  return {score, result}
+};
+
 const gradeQuizAttempt = async (
   quizId: string,
   answers: SubmittedQuizAnswer[],
   userId: string,
 ) => {
-  const answersQuery = await pool.query<{
-    answer: string;
-    question_id: string;
-  }>("SELECT answer, question_id FROM questions WHERE quiz_id = $1", [quizId]);
+  const answersQuery = await pool.query<QuestionResultWithType>(
+    "SELECT answer, question_id, explanation FROM questions WHERE quiz_id = $1",
+    [quizId],
+  );
 
   if (answersQuery.rows.length === 0) {
     throw new Error("Quiz not found or has no questions");
@@ -186,31 +217,27 @@ const gradeQuizAttempt = async (
     throw new Error("Submitted answers contain invalid question IDs");
   }
 
-  let agg = 0;
-
-  for (const { answer, question_id } of answersQuery.rows)
-    if (
-      answers.find((a) => a.question_id === question_id)?.answer_id === answer
-    )
-      agg++;
-
-  const score = agg / answersQuery.rows.length / 100;
+  const res = await gradeMcqAnswers(quizId, answers)
 
   const query = `
     INSERT INTO quiz_attempts AS q (quiz_id, user_id, chosen_answers, score, status)
     VALUES ($1, $2, $3::jsonb, $4, 'finished')
   `;
 
-  await pool.query(query, [quizId, userId, answers, score.toFixed(0)]);
+  await pool.query(query, [quizId, userId, answers, res.score.toFixed(0)]);
 
-  return score;
+  return res;
 };
+
+
 
 export {
   getDBQuizDetails,
   getDBQuizQuestions,
   getPdfSystemsPrompt,
+  gradeMcqAnswers,
   gradeQuizAttempt,
   handleAsyncErrors,
-  storeQuizandQuestions,
+  storeQuizandQuestions
 };
+

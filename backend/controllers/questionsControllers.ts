@@ -93,9 +93,9 @@ const gradeQuestionAnswers = async (req: Request, res: Response) =>
           .status(CLIENT_ERROR.UNAUTHORIZED)
           .json({ message: "Unauthorised attempt" });
 
-      const score = await gradeQuizAttempt(quiz_id, answers, decoded.attemptor_id)
+      const result = await gradeQuizAttempt(quiz_id, answers, decoded.attemptor_id)
           
-      return res.status(SUCCESS.OK).json({score: score.toFixed(2)});
+      return res.status(SUCCESS.OK).json(result);
     },
     "Grade Quiz err",
   );

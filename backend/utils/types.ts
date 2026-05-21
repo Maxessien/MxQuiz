@@ -1,5 +1,5 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
-import {} from "multer";
+import { } from "multer";
 
 export interface DecodedTokenWithClaims extends DecodedIdToken {
   role: "user" | "admin";
@@ -60,4 +60,16 @@ export interface SubmittedQuizBody {
   quiz_id: string;
   answers: SubmittedQuizAnswer[];
   attempt_token: string;
+}
+
+export interface QuestionResult {
+  question_id: string,
+  answer: string,
+  explanation: string | null,
+  question_text: string
+  userAnswer: string
+}
+
+export interface QuestionResultWithType extends QuestionResult {
+  type: "mcq" | "theory"
 }

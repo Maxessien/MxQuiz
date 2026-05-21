@@ -44,6 +44,13 @@ export interface QuizQuestionsMod extends QuizQuestionResponse {
 
 export type QuizType = "mcq" | "theory" | "both";
 
+export interface QuestionResult {
+  question_id: string;
+  answer: string;
+  explanation: string | null;
+  question_text: string;
+  userAnswer: string;
+}
 
 export interface FormFields {
   email: string;

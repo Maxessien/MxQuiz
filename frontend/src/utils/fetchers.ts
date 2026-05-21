@@ -1,8 +1,8 @@
 import { QuizCardProps } from "@/types/componentTypes";
+import { QuestionResult, QuizQuestionResponse, UserResponse } from "@/types/types";
+import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { authApi, regApi } from "./api";
 import logger from "./logger";
-import { QuizQuestionResponse, UserResponse } from "@/types/types";
-import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 export interface SubmittedQuizAnswer {
   question_id: string;
@@ -71,13 +71,13 @@ export const submitQuiz = async (
   quizId: string,
   token: string,
 ) => {
-  const { data } = await regApi.post<{ score: number }>("/questions/grade", {
+  const { data } = await regApi.post<{ score: number, result: QuestionResult[] }>("/questions/grade", {
     answers,
     attempt_token: token,
     quiz_id: quizId,
   });
 
-  return data.score;
+  return data;
 };
 
 export const getUserServerSide = async (
