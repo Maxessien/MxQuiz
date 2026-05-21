@@ -21,7 +21,7 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
 
       const hasUserId = req.query.userId?.toString();
       const signature: AttemptToken = {
-        attemptor_id: hasUserId ?? v4(),
+        attemptor_id: null,
         is_valid: true,
       };
 
@@ -85,10 +85,7 @@ const gradeQuestionAnswers = async (req: Request, res: Response) =>
       const token = typeof verified === 'string' ? verified : JSON.stringify(verified);
       const decoded: AttemptToken = JSON.parse(token);
 
-      if (
-        !decoded?.is_valid ||
-        !decoded?.attemptor_id?.trim()?.length
-      )
+      if (!decoded?.is_valid)
         return res
           .status(CLIENT_ERROR.UNAUTHORIZED)
           .json({ message: "Unauthorised attempt" });

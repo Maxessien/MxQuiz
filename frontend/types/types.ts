@@ -25,7 +25,7 @@ export interface UserResponse {
 }
 
 export interface QuizQuestionOption {
-  option_id: string;
+  optionId: string;
   value: string | number;
 }
 

@@ -1,10 +1,10 @@
 import { FaChartPie, FaLayerGroup, FaRegClock, FaRegFileAlt, FaStar, FaUserFriends } from "react-icons/fa";
 import { VscVerifiedFilled } from "react-icons/vsc";
-import { QuizDetailsProps } from "../../../types/componentTypes";
+import { QuizDetailsResponse } from "@/src/utils/fetchers";
 import Button from "../reusable/Button";
 
 interface Props {
-  details: QuizDetailsProps;
+  details: QuizDetailsResponse;
 }
 
 const QuizHeader = ({ details }: Props) => {
@@ -25,7 +25,7 @@ const QuizHeader = ({ details }: Props) => {
             
             <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-sm text-(--text-secondary)">
               <span className="flex items-center gap-1.5">
-                By {details.author.name} <VscVerifiedFilled className="text-blue-500 text-base" />
+                By {details.author_name} <VscVerifiedFilled className="text-blue-500 text-base" />
               </span>
               <Button size="small" color="tertiary" className="py-1! px-3! text-xs! rounded-md!">
                 Follow
@@ -33,9 +33,9 @@ const QuizHeader = ({ details }: Props) => {
               <div className="flex items-center gap-1">
                 <FaStar className="text-yellow-400" />
                 <span className="font-semibold text-(--text-primary-light)">
-                  {details.stats.average_rating.toFixed(1)}
+                  {details.average_rating ? details.average_rating.toFixed(1) : "0.0"}
                 </span>
-                <span className="text-(--text-secondary-light)">({details.stats.reviews_count})</span>
+                <span className="text-(--text-secondary-light)">({details.attempts_count})</span>
               </div>
             </div>
           </div>
@@ -51,7 +51,7 @@ const QuizHeader = ({ details }: Props) => {
         <div className="flex flex-col items-center justify-center gap-1 text-center">
           <FaRegFileAlt className="text-(--text-secondary) text-lg mb-1" />
           <span className="text-xs text-(--text-secondary-light)">Questions</span>
-          <span className="text-lg font-bold text-(--text-primary-light)">{details.stats.question_count}</span>
+          <span className="text-lg font-bold text-(--text-primary-light)">{details.question_count}</span>
         </div>
         
         <div className="flex flex-col items-center justify-center gap-1 text-center">
@@ -66,9 +66,9 @@ const QuizHeader = ({ details }: Props) => {
           <FaUserFriends className="text-(--text-secondary) text-lg mb-1" />
           <span className="text-xs text-(--text-secondary-light)">Attempts</span>
           <span className="text-lg font-bold text-(--text-primary-light)">
-            {details.stats.attempts_count > 999 
-              ? `${(details.stats.attempts_count / 1000).toFixed(1)}K` 
-              : details.stats.attempts_count}
+            {details.attempts_count > 999 
+              ? `${(details.attempts_count / 1000).toFixed(1)}K` 
+              : details.attempts_count}
           </span>
         </div>
 
@@ -76,7 +76,7 @@ const QuizHeader = ({ details }: Props) => {
           <FaChartPie className="text-(--text-secondary) text-lg mb-1" />
           <span className="text-xs text-(--text-secondary-light)">Avg. Score</span>
           <span className="text-lg font-bold text-(--text-primary-light)">
-            {details.stats.average_score}%
+            {details.avg_score ? details.avg_score.toFixed(0) : "0"}%
           </span>
         </div>
 
@@ -84,7 +84,7 @@ const QuizHeader = ({ details }: Props) => {
           <FaLayerGroup className="text-(--text-secondary) text-lg mb-1" />
           <span className="text-xs text-(--text-secondary-light)">Type</span>
           <span className="text-lg font-bold text-(--text-primary-light) capitalize">
-            {details.question_types.length > 1 ? "Mixed" : details.question_types[0]}
+            Mixed
           </span>
         </div>
       </div>

@@ -55,7 +55,7 @@ const Result: React.FC<ResultProps> = ({ score, results, onRetake, onBack }) => 
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            <span>Back to Dashboard</span>
+            <span>Back</span>
           </button>
         )}
         

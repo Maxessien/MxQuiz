@@ -1,18 +1,15 @@
-import { FaLayerGroup, FaRegCompass, FaRegListAlt, FaRegStar, FaTrophy } from "react-icons/fa";
+import { FaLayerGroup, FaRegCompass, FaRegStar } from "react-icons/fa";
 
 interface Props {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  questionsCount: number;
   reviewsCount: number;
 }
 
-const QuizTabs = ({ activeTab, setActiveTab, questionsCount, reviewsCount }: Props) => {
+const QuizTabs = ({ activeTab, setActiveTab, reviewsCount }: Props) => {
   const tabs = [
     { id: "overview", label: "Overview", icon: <FaRegCompass /> },
-    { id: "questions", label: `Questions (${questionsCount})`, icon: <FaRegListAlt /> },
     { id: "reviews", label: `Reviews (${reviewsCount})`, icon: <FaRegStar /> },
-    { id: "scores", label: "Top Scores", icon: <FaTrophy /> },
     { id: "related", label: "Related Quizzes", icon: <FaLayerGroup /> }
   ];
 

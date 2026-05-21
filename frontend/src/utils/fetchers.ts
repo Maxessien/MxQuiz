@@ -17,6 +17,23 @@ export interface QuizResponse extends QuizCardProps {
   total_rows: number;
 }
 
+export interface QuizDetailsResponse {
+  quiz_id: string;
+  title: string;
+  description: string;
+  time_limit: number | null;
+  is_ai_generated: boolean;
+  created_at: string;
+  author_id: string;
+  author_name: string;
+  author_img: string | null;
+  question_count: number;
+  average_rating: number;
+  attempts_count: number;
+  avg_score: number;
+  author_quiz_count: number;
+}
+
 export const getQuizzes = async (
   sortBy: QuizSortBy = "date",
   order: QuizSortOrder = "desc",
@@ -62,6 +79,24 @@ export const getQuizQuestions = async (
     return questions.data;
   } catch (err) {
     logger.error("Get Questions", err);
+    return null;
+  }
+};
+
+export const getQuizDetails = async (
+  type: "public" | "private",
+  quizId: string,
+  idToken?: string,
+) => {
+  try {
+    const quiz =
+      type === "private"
+        ? await authApi(idToken || "").get<QuizDetailsResponse>(`/quiz/private/${quizId}`)
+        : await regApi.get<QuizDetailsResponse>(`/quiz/${quizId}`);
+
+    return quiz.data;
+  } catch (err) {
+    logger.error("Get Quiz Details", err);
     return null;
   }
 };

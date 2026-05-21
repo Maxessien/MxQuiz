@@ -10,7 +10,7 @@ import Button from "../reusable/Button";
 const QuizCard = (props: QuizCardProps) => {
   const {
     title,
-    author,
+    author_name,
     is_ai_generated,
     time_limit,
     question_count,
@@ -34,7 +34,7 @@ const QuizCard = (props: QuizCardProps) => {
               {title}
             </h3>
             <div className="flex items-center gap-2 text-sm text-(--text-secondary) mt-1">
-              <span>By {author.name}</span>
+              <span>By {author_name || ""}</span>
               <VscVerifiedFilled className="text-blue-500" />
             </div>
           </div>

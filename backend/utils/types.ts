@@ -47,7 +47,7 @@ export interface UpdateQuestionReq extends QuizQuestion {
 export type QuizType = "mcq" | "theory" | "both";
 
 export interface AttemptToken {
-  attemptor_id: string;
+  attemptor_id: string | null;
   is_valid: boolean;
 }
 

@@ -1,8 +1,9 @@
 import { FaFlag, FaGlobe, FaRegCalendarAlt, FaRegCheckCircle, FaSyncAlt } from "react-icons/fa";
-import { QuizDetailsProps } from "../../../types/componentTypes";
+import { FaRegFileAlt } from "react-icons/fa";
+import { QuizDetailsResponse } from "@/src/utils/fetchers";
 
 interface Props {
-  details: QuizDetailsProps;
+  details: QuizDetailsResponse;
 }
 
 const formatDate = (isoString: string) => {
@@ -29,11 +30,11 @@ const AboutQuiz = ({ details }: Props) => {
         {/* Dynamic bullets based on available DB schema data */}
         <div className="flex items-center gap-3 text-sm text-(--text-secondary)">
           <FaRegCheckCircle className="text-(--main-primary-light)" />
-          {details.stats.question_count} carefully crafted questions
+          {details.question_count} carefully crafted questions
         </div>
         <div className="flex items-center gap-3 text-sm text-(--text-secondary) capitalize">
           <FaRegCheckCircle className="text-(--main-primary-light)" />
-          {details.question_types.length > 1 ? "Mixed question types" : `${details.question_types[0]} format`}
+          Mixed question types
         </div>
         {details.is_ai_generated && (
           <div className="flex items-center gap-3 text-sm text-(--text-secondary)">
@@ -56,7 +57,7 @@ const AboutQuiz = ({ details }: Props) => {
           <div className="mt-0.5 text-(--text-secondary-light)"><FaSyncAlt /></div>
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-wider text-(--text-secondary-light) font-semibold">Last Updated</span>
-            <span className="text-xs text-(--text-primary-light) font-medium">{formatDate(details.updated_at)}</span>
+            <span className="text-xs text-(--text-primary-light) font-medium">{formatDate(details.created_at)}</span>
           </div>
         </div>
 
@@ -79,7 +80,5 @@ const AboutQuiz = ({ details }: Props) => {
     </div>
   );
 };
-
-import { FaRegFileAlt } from "react-icons/fa";
 
 export default AboutQuiz;

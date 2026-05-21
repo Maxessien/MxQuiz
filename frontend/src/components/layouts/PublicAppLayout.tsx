@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { ReactNode, useState } from "react";
+import { FaUser } from "react-icons/fa";
 import { HiMenu, HiX } from "react-icons/hi";
 import Button from "../reusable/Button";
 
@@ -30,65 +31,91 @@ const NavItem = ({
 };
 
 const PublicAppLayout = ({ children }: { children: ReactNode }) => {
-  const [showNav, setShowNav] = useState(false)
-  const pathname = usePathname()
-  const {width} = useAppSelector(state=> state.app)
-  
+  const [showNav, setShowNav] = useState(false);
+  const pathname = usePathname();
+  const { width } = useAppSelector((state) => state.app);
+  const { isLoggedIn } = useAppSelector((state) => state.user);
+
   const router = useRouter();
   return (
     <main>
       <header className="w-full bg-(--main-secondary-light) px-3 sm:px-5 lg:px-8 py-4 flex justify-between items-center gap-2">
         <div className="flex-1 flex justify-between items-center gap-2 max-w-5xl">
           <h1 className="text-2xl font-semibold">Max Quiz</h1>
-          <button onClick={()=> setShowNav(!showNav)} className="font-medium cursor-pointer sm:hidden z-999 text-3xl">{showNav ? <HiX /> : <HiMenu />}</button> 
-          {(showNav || width > 640) &&  <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-center items-center sm:justify-end">
-            <ul className="sm:w-full w-9/10 bg-(--main-secondary-light) px-3 sm:bg-transparent max-w-xl rounded-md flex-col sm:flex-row flex justify-end items-center gap-4 py-5 sm:p-0 sm:gap-2">
-              <li>
-                <NavItem location="/" text="Home" />
-              </li>
-              <li>
-                <NavItem location="/quiz" isActive={pathname.startsWith("/quiz")} text="Quizzes" />
-              </li>
-              <li>
-                <NavItem location="/quiz/create" text="Create Quiz" />
-              </li>
-              <Button
-                attrs={{ onClick: () => router.push("/login") }}
-                color="tertiary"
-                rounded="rounded-md"
-                width="w-full"
-                className="sm:hidden"
-              >
-                Sign In
-              </Button>
-              <Button
-                attrs={{ onClick: () => router.push("/register") }}
-                color="secondary"
-                rounded="rounded-md"
-                width="w-full"
-                className="sm:hidden"
-              >
-                Sign Up
-              </Button>
-            </ul>
-          </div>}
-        </div>
-        <div className="hidden md:flex justify-center items-center gap-2">
-          <Button
-            attrs={{ onClick: () => router.push("/login") }}
-            color="tertiary"
-            rounded="rounded-md"
+          <button
+            onClick={() => setShowNav(!showNav)}
+            className="font-medium cursor-pointer sm:hidden z-999 text-3xl"
           >
-            Sign In
-          </Button>
-          <Button
-            attrs={{ onClick: () => router.push("/register") }}
-            color="secondary"
-            rounded="rounded-md"
-          >
-            Sign Up
-          </Button>
+            {showNav ? <HiX /> : <HiMenu />}
+          </button>
+          {(showNav || width > 640) && (
+            <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-center items-center sm:justify-end">
+              <ul className="sm:w-full w-9/10 bg-(--main-secondary-light) px-3 sm:bg-transparent max-w-xl rounded-md flex-col sm:flex-row flex justify-end items-center gap-4 py-5 sm:p-0 sm:gap-2">
+                <li>
+                  <NavItem location="/" text="Home" />
+                </li>
+                <li>
+                  <NavItem
+                    location="/quiz"
+                    isActive={pathname.startsWith("/quiz")}
+                    text="Quizzes"
+                  />
+                </li>
+                <li>
+                  <NavItem location="/quiz/create" text="Create Quiz" />
+                </li>
+                {!isLoggedIn ? (
+                  <>
+                    <Button
+                      attrs={{ onClick: () => router.push("/login") }}
+                      color="tertiary"
+                      rounded="rounded-md"
+                      width="w-full"
+                      className="sm:hidden"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      attrs={{ onClick: () => router.push("/register") }}
+                      color="secondary"
+                      rounded="rounded-md"
+                      width="w-full"
+                      className="sm:hidden"
+                    >
+                      Sign Up
+                    </Button>
+                  </>
+                ) : (
+                  <div className="sm:hidden"><NavItem location="/profile" text="Profile" /></div>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
+        {!isLoggedIn ? (
+          <div className="hidden md:flex justify-center items-center gap-2">
+            <Button
+              attrs={{ onClick: () => router.push("/login") }}
+              color="tertiary"
+              rounded="rounded-md"
+            >
+              Sign In
+            </Button>
+            <Button
+              attrs={{ onClick: () => router.push("/register") }}
+              color="secondary"
+              rounded="rounded-md"
+            >
+              Sign Up
+            </Button>
+          </div>
+        ) : (
+          <div className="flex justify-end">
+            <div className="p-3 rounded-full border-(--text-primary-light) border-2">
+              <FaUser />
+            </div>
+          </div>
+        )}
       </header>
       <section>{children}</section>
     </main>

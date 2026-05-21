@@ -27,15 +27,20 @@ const QuizQuestions = ({
     questions: QuizQuestionsMod[];
     token: string;
     quizId: string;
-    timeLeft: number
+    timeLeft: number;
   } = hasCache ? JSON.parse(hasCache) : null;
 
   const [questions, setQuestions] = useState<QuizQuestionsMod[]>(
     cache ? cache.questions : q,
   );
-  const [submitted, setSubmitted] = useState<{isSubmitted: boolean, result: {score: number, val: QuestionResult[]}}>({isSubmitted: false, result: {score: 0, val: []}})
+  const [submitted, setSubmitted] = useState<{
+    isSubmitted: boolean;
+    result: { score: number; val: QuestionResult[] };
+  }>({ isSubmitted: false, result: { score: 0, val: [] } });
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(cache ? cache.timeLeft : (q[0]?.time_limit || 0) * 60);
+  const [timeLeft, setTimeLeft] = useState(
+    cache ? cache.timeLeft : (q[0]?.time_limit || 0) * 60,
+  );
 
   // Example timer logic
   useEffect(() => {
@@ -90,13 +95,28 @@ const QuizQuestions = ({
       // Remove cache when successfully submitted
       localStorage.removeItem(quizId);
 
-      setSubmitted({isSubmitted: true, result: {score: data.score, val: data.result}})
+      setSubmitted({
+        isSubmitted: true,
+        result: { score: data.score, val: data.result },
+      });
     },
   });
 
-  const router = useRouter()
+  const router = useRouter();
 
-  if (submitted.isSubmitted) return <Result onBack={()=> router.back()} onRetake={()=> router.refresh()} results={submitted.result.val} score={submitted.result.score} />
+  if (submitted.isSubmitted)
+    return (
+      <Result
+        onBack={() => {
+          router.back()
+        }}
+        onRetake={() => {
+          router.push(`/quiz/${quizId}`)
+        }}
+        results={submitted.result.val}
+        score={submitted.result.score}
+      />
+    );
 
   if (!questions.length) return null;
 

@@ -144,9 +144,9 @@ const getDBQuizDetails = async (id: string, userId: string | null) => {
         (SELECT COALESCE(AVG(rating), 0)::float FROM quiz_comments WHERE quiz_id = q.quiz_id) as average_rating,
         (SELECT COUNT(*)::int FROM quiz_attempts WHERE quiz_id = q.quiz_id) as attempts_count,
         (SELECT COALESCE(AVG(score), 0)::float FROM quiz_attempts WHERE quiz_id = q.quiz_id) as avg_score,
-        (SELECT COUNT(*)::int FROM quizzes WHERE author_user_id = a.user_id) AS author_quiz_count
-      LEFT JOIN users AS u ON u.user_id = q.author_user_id
-      FROM quizzes AS q WHERE q.quiz_id = $1 AND (q.visibility = 'public' OR q.author_user_id = $2)
+        (SELECT COUNT(*)::int FROM quizzes WHERE author_user_id = u.user_id) AS author_quiz_count
+      FROM quizzes AS q LEFT JOIN users AS u ON u.user_id = q.author_user_id
+      WHERE q.quiz_id = $1 AND (q.visibility = 'public' OR q.author_user_id = $2)
     `;
 
   const quiz = await pool.query(query, [id, userId]);
@@ -198,7 +198,7 @@ const gradeMcqAnswers = async (
 const gradeQuizAttempt = async (
   quizId: string,
   answers: SubmittedQuizAnswer[],
-  userId: string,
+  userId: string | null,
 ) => {
   const answersQuery = await pool.query<QuestionResultWithType>(
     "SELECT answer, question_id, explanation FROM questions WHERE quiz_id = $1",
@@ -219,12 +219,15 @@ const gradeQuizAttempt = async (
 
   const res = await gradeMcqAnswers(quizId, answers)
 
-  const query = `
+  //Only store attempt when user id is available
+  if (userId) {
+    const query = `
     INSERT INTO quiz_attempts AS q (quiz_id, user_id, chosen_answers, score, status)
     VALUES ($1, $2, $3::jsonb, $4, 'finished')
   `;
 
-  await pool.query(query, [quizId, userId, answers, res.score.toFixed(0)]);
+  await pool.query(query, [quizId, userId, JSON.stringify(answers), res.score.toFixed(0)]);
+  }
 
   return res;
 };

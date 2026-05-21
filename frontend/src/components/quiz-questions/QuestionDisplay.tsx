@@ -23,6 +23,8 @@ const QuestionDisplay = ({
   onSubmit, isSubmitting
 }: Props) => {
 
+  // console.log(quiz)
+
   return (
     <div className="flex-1 flex flex-col bg-(--main-tertiary)/30 border border-(--main-tertiary-light) rounded-3xl p-2 md:p-5 lg:p-7 w-full relative">
 
@@ -35,23 +37,23 @@ const QuestionDisplay = ({
          <div className="flex flex-col gap-4 mt-4">
            {quiz.options.map((opt) => (
              <button
-               key={opt.option_id}
-               onClick={() => onSelectOption(opt.option_id)}
+               key={opt.optionId}
+               onClick={() => onSelectOption(opt.optionId)}
                className={`flex items-start gap-4 p-2 rounded-2xl border text-left transition-all duration-200
-                 ${quiz.answer === opt.option_id 
+                 ${quiz.answer === opt.optionId 
                    ? "bg-(--main-primary)/10 border-(--main-primary-light) text-(--main-primary-lighter) shadow-[0_0_15px_-5px_var(--main-primary)]" 
                    : "bg-(--main-tertiary)/50 border-(--main-tertiary-light) text-(--text-secondary) hover:border-(--main-primary)/50 hover:bg-(--main-tertiary)"
                  }`}
              >
                 <div className={`w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center mt-0.5
-                  ${quiz.answer === opt.option_id 
+                  ${quiz.answer === opt.optionId 
                     ? "border-(--main-primary-light) bg-(--main-primary-light)" 
                     : "border-(--text-secondary-light)"
                   }`}
                 >
-                  {quiz.answer === opt.option_id && <span className="w-2.5 h-2.5 bg-white rounded-full" />}
+                  {quiz.answer === opt.optionId && <span className="w-2.5 h-2.5 bg-white rounded-full" />}
                 </div>
-                <span className={`text-base md:text-lg ${quiz.answer === opt.option_id ? "text-(--text-primary-light) font-semibold" : "text-(--text-secondary)"}`}>
+                <span className={`text-base md:text-lg ${quiz.answer === opt.optionId ? "text-(--text-primary-light) font-semibold" : "text-(--text-secondary)"}`}>
                   {opt.value}
                 </span>
              </button>

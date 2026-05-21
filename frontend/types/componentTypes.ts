@@ -9,7 +9,9 @@ export interface QuizCardProps {
   quiz_id: string;
   title: string;
   description?: string;
-  author: UserAuthor;
+  author_name: string;
+  author_id: string;
+  author_img: string;
   is_ai_generated: boolean;
   time_limit: number | null; // in minutes
   question_count: number;
