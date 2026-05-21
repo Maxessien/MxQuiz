@@ -10,7 +10,6 @@ import QuestionDisplay from "./QuestionDisplay";
 import QuizNav from "./QuizNav";
 import { toast } from "react-toastify";
 
-
 const QuizQuestions = ({
   q,
   token,
@@ -20,9 +19,20 @@ const QuizQuestions = ({
   token: string;
   quizId: string;
 }) => {
-  const [questions, setQuestions] = useState<QuizQuestionsMod[]>(q);
+  // Use cache quiz state
+  const hasCache = localStorage.getItem(quizId);
+  const cache: {
+    questions: QuizQuestionsMod[];
+    token: string;
+    quizId: string;
+    timeLeft: number
+  } = hasCache ? JSON.parse(hasCache) : null;
+
+  const [questions, setQuestions] = useState<QuizQuestionsMod[]>(
+    cache ? cache.questions : q,
+  );
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [timeLeft, setTimeLeft] = useState((q[0]?.time_limit || 0) * 60);
+  const [timeLeft, setTimeLeft] = useState(cache ? cache.timeLeft : (q[0]?.time_limit || 0) * 60);
 
   // Example timer logic
   useEffect(() => {
@@ -53,7 +63,7 @@ const QuizQuestions = ({
     if (currentIdx > 0) setCurrentIdx((prev) => prev - 1);
   };
 
-  const {mutateAsync, isPending} = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: () =>
       submitQuiz(
         questions.map(({ answer, question_id }) => ({
@@ -64,8 +74,21 @@ const QuizQuestions = ({
         token,
       ),
     retry: 3,
-    onError: ()=> toast.error("Failed to submit, try again later")
+    onError: () => {
+      // Cache quiz attempt for future retries
+      localStorage.setItem(
+        quizId,
+        JSON.stringify({ questions, quizId, token, timeLeft }),
+      );
+      toast.error("Failed to submit, try again later");
+    },
+
+    onSuccess: () => {
+      // Remove cache when successfully submitted
+      localStorage.removeItem(quizId);
+    },
   });
+
   if (!questions.length) return null;
 
   return (

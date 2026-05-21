@@ -43,3 +43,12 @@ export interface QuizQuestionsMod extends QuizQuestionResponse {
 }
 
 export type QuizType = "mcq" | "theory" | "both";
+
+
+export interface FormFields {
+  email: string;
+  name?: string;
+  password: string;
+}
+
+export type Fields = "email" | "name" | "password"
