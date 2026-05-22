@@ -75,7 +75,7 @@ const storeQuizandQuestions = async (
     const allQValues = questions.map((q) => [
       insertedQuizId,
       q.type,
-      q.questionText,
+      q.question_text,
       JSON.stringify(q.options || []),
       q.answer,
       q.explanation || null,
@@ -130,7 +130,7 @@ const getPdfSystemsPrompt = (
   MUST be cryptographically randomized across the quiz. Ensure perfectly even distribution of correct answer 
   positions so no single option index is favored as the correct answer over the others. 
   Your response must strictly contain ONLY an array of objects matching this exact structure structure 
-  (no markdown wrappers or other text): [{ "type": "mcq" | "theory", "questionText": "The question being asked", 
+  (no markdown wrappers or other text): [{ "type": "mcq" | "theory", "question_text": "The question being asked", 
   "options": [{ "optionId": "unique-id", "value": "Option text" }], "answer": "The correct optionId or theory answer", 
   "explanation": "Why the answer is correct or null" }]. ${extra[questionType]}`;
 };

@@ -34,7 +34,7 @@ export interface QuizQuestionOption {
 
 export interface QuizQuestion {
   type: "mcq" | "theory";
-  questionText: string;
+  question_text: string;
   options: QuizQuestionOption[];
   answer: string;
   explanation: string | null;

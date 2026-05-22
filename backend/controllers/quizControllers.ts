@@ -4,7 +4,6 @@ import { readFile } from "node:fs/promises";
 import { client } from "../configs/groq.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
-import logger from "../utils/logger.js";
 import {
   getDBQuizDetails,
   getPdfSystemsPrompt,
@@ -13,10 +12,7 @@ import {
 } from "../utils/regHelpers";
 import { Quiz, QuizQuestion, QuizType } from "../utils/types";
 
-interface QuizBody extends Pick<
-  Quiz,
-  "description" | "status" | "title" | "time" | "visibility"
-> {
+interface QuizBody extends Quiz {
   questions: QuizQuestion[];
 }
 
@@ -24,7 +20,7 @@ const createQuiz = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
-      const { description, status, time, title, visibility, questions } =
+      const { description, status, time, title, isAiGen, visibility, questions } =
         req.body as QuizBody;
 
       await storeQuizandQuestions(
@@ -35,7 +31,7 @@ const createQuiz = async (req: Request, res: Response) =>
           title,
           visibility,
           author: req.auth?.uid || "",
-          isAiGen: false,
+          isAiGen,
         },
         questions,
       );

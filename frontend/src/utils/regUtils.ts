@@ -1,5 +1,6 @@
-import { AuthFormType, Fields, FormFields } from "@/types/types";
+import { AuthFormType, CreateQuizForm, Fields, FormFields, GenQuizRes } from "@/types/types";
 import { RegisterOptions } from "react-hook-form";
+import { authApi } from "./api";
 
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
@@ -44,3 +45,18 @@ export const authFieldsRegisters: Record<Fields, Record<AuthFormType, RegisterOp
     }
   }}
 };
+
+export const submitCreateQuizForm = async({optCount, pdf, qCount, qType}: CreateQuizForm, token: string)=>{
+  if (!pdf || pdf.length === 0) {
+    throw new Error("PDF file is required");
+  }
+  
+  const formData = new FormData()
+  formData.append("qType", qType)
+  formData.append("qCount", qCount.toString())
+  formData.append("optCount", optCount.toString())
+  formData.append("pdf", pdf[0])
+
+  const res = await authApi(token).post<GenQuizRes>("/quiz/ai", formData)
+  return res.data
+}

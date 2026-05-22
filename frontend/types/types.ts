@@ -24,6 +24,34 @@ export interface UserResponse {
   role: "user" | "admin";
 }
 
+export interface GenQuizInfoRes {
+  title: string;
+  description: string;
+  author: string;
+  isAiGen: boolean;
+  visibility: "public" | "private";
+  status: "draft" | "published";
+  time: number | null;
+}
+
+export interface GenQuizQuestionsRes extends Pick<
+  QuizQuestionResponse,
+  "options" | "question_text"
+> {
+  type: "mcq" | "theory";
+  answer: string;
+  explanation: string | null;
+}
+
+export interface CreateQuizManualForm extends GenQuizInfoRes {
+  questions: GenQuizQuestionsRes[]
+}
+
+export interface GenQuizRes {
+    quizInfo: GenQuizInfoRes;
+    questions: GenQuizQuestionsRes[];
+  }
+
 export interface QuizQuestionOption {
   optionId: string;
   value: string | number;
@@ -32,14 +60,14 @@ export interface QuizQuestionOption {
 export interface QuizQuestionResponse {
   question_text: string;
   options: QuizQuestionOption[];
-  question_id: string
-  title: string,
-  time_limit: number
+  question_id: string;
+  title: string;
+  time_limit: number;
 }
 
 export interface QuizQuestionsMod extends QuizQuestionResponse {
-  is_answered: boolean,
-  answer: string | null
+  is_answered: boolean;
+  answer: string | null;
 }
 
 export type QuizType = "mcq" | "theory" | "both";
@@ -58,6 +86,13 @@ export interface FormFields {
   password: string;
 }
 
-export type Fields = "email" | "name" | "password"
+export type Fields = "email" | "name" | "password";
 
-export type AuthFormType = "register" | "login"
+export type AuthFormType = "register" | "login";
+
+export interface CreateQuizForm {
+  qType: QuizType;
+  qCount: number;
+  optCount: number;
+  pdf: FileList;
+}
