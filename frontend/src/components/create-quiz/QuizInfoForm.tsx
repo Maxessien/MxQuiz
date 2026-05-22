@@ -10,8 +10,8 @@ const QuizInfoForm = ({
   errs: FieldErrors<CreateQuizManualForm>;
 }) => {
   return (
-    <div>
-      <h2>Quiz Info</h2>
+    <div className="w-full rounded-md border-(--text-secondary) space-y-3 px-3 py-5 border-2">
+      <h2 className="text-xl font-medium">Quiz Info</h2>
 
       <FieldWrapper>
         <Label attrs={{ htmlFor: "quiz_title" }}>Title</Label>

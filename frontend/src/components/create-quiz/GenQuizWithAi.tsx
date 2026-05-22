@@ -35,7 +35,7 @@ const GenQuizWithAi = ({switchTab}: {
   });
   return (
     <form
-      className="space-y-3"
+      className="space-y-3 max-w-6xl mx-auto"
       onSubmit={handleSubmit((data) => mutateAsync(data))}
     >
       <div className="w-full p-3 rounded-lg space-y-2 border-(--text-secondary-light) border-2">
