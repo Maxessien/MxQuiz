@@ -47,8 +47,6 @@ export const authFieldsRegisters: Record<Fields, Record<AuthFormType, RegisterOp
 };
 
 export const submitCreateQuizForm = async({optCount, pdf, qCount, qType}: CreateQuizForm, token: string)=>{
-  console.log({optCount, pdf, qCount, qType})
-  throw new Error("Test break")
   if (!pdf || pdf.length === 0) {
     throw new Error("PDF file is required");
   }

@@ -7,7 +7,15 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { ReactNode, useState } from "react";
 import { FaUser } from "react-icons/fa";
-import { HiCollection, HiHome, HiMenu, HiPencilAlt, HiX } from "react-icons/hi";
+import {
+  HiBookOpen,
+  HiCheckCircle,
+  HiCollection,
+  HiHome,
+  HiMenu,
+  HiPencilAlt,
+  HiX,
+} from "react-icons/hi";
 import Button from "../reusable/Button";
 
 // ─── Shared avatar component ──────────────────────────────────────────────────
@@ -103,10 +111,8 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <main className="flex flex-col min-h-screen md:flex-row">
-
       {/* ── Desktop sidebar (md and above) ───────────────────────────────── */}
       <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-60 bg-(--main-secondary-light) border-r border-(--main-tertiary-light) z-40">
-
         {/* Logo */}
         <div className="px-5 py-5 border-b border-(--main-tertiary-light)">
           <h1 className="text-2xl font-semibold">Max Quiz</h1>
@@ -114,7 +120,15 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
 
         {/* Nav links */}
         <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
-          <SideNavItem location="/" text="Home" icon={<HiHome />} />
+          {!isLoggedIn ? (
+            <SideNavItem location="/" text="Home" icon={<HiHome />} />
+          ) : (
+            <SideNavItem
+              location={`/${userId}`}
+              text="Dashboard"
+              icon={<HiHome />}
+            />
+          )}
           <SideNavItem
             location="/quiz"
             text="Quizzes"
@@ -122,17 +136,31 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
             isActive={pathname.startsWith("/quiz")}
           />
           <SideNavItem
-            location="/quiz/create"
+            location={isLoggedIn ? `/${userId}/create` : "/login"}
             text="Create Quiz"
             icon={<HiPencilAlt />}
           />
+          {isLoggedIn && (
+            <>
+              <SideNavItem
+                location={`/${userId}/quiz`}
+                icon={<HiBookOpen />}
+                text="My Quizzes"
+              />
+              <SideNavItem
+                location={`/${userId}/attempts`}
+                icon={<HiCheckCircle />}
+                text="My Attempts"
+              />
+            </>
+          )}
         </nav>
 
         {/* User / auth section pinned to bottom */}
         <div className="p-4 border-t border-(--main-tertiary-light)">
           {isLoggedIn ? (
             <Link
-              href={`/${userId}`}
+              href={`/${userId}/profile`}
               className="flex items-center gap-3 hover:bg-(--main-tertiary-light) rounded-md p-2 transition-all"
             >
               <UserAvatar avatarUrl={avatarUrl} size="w-9 h-9" />

@@ -50,7 +50,7 @@ export const useAuthStateChange = (
     } else {
       dispatch(setUserState(defaultUserState));
       await regApi.delete("/auth/token", { withCredentials: true });
-      return {token: "", id: ""}
+      throw new Error("User doesn't exist")
     }
   };
 
@@ -70,6 +70,19 @@ export const useAuthStateChange = (
         }),
       );
     },
+    onError: ()=>{
+      dispatch(
+        setUserState({
+          avatarUrl: "",
+          email: "",
+          idToken: "",
+          isLoggedIn: false,
+          name: "",
+          role: "user",
+          userId: "",
+        }),
+      );
+    }
   });
 
   useEffect(() => {

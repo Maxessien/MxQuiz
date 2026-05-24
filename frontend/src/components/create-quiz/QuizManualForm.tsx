@@ -98,7 +98,7 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
 
       {/* Form Submission Action Area */}
       <div className="pt-4 border-t border-(--text-secondary-light)/10 flex justify-center">
-        <Button width="w-full max-w-lg">Publish Quiz</Button>
+        <Button attrs={{type: "submit"}} width="w-full max-w-lg">Publish Quiz</Button>
       </div>
     </form>
   );
