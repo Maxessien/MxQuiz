@@ -19,7 +19,6 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
           .status(CLIENT_ERROR.NOT_FOUND)
           .json({ message: "Questions not found" });
 
-      const hasUserId = req.query.userId?.toString();
       const signature: AttemptToken = {
         attemptor_id: null,
         is_valid: true,
