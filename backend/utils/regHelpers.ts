@@ -4,12 +4,12 @@ import pool from "./../configs/sqlConfig.js";
 import { SERVER_ERROR } from "./httpCodes.js";
 import logger from "./logger.js";
 import type {
-  QuestionResult,
+  FormattedResult,
   QuestionResultWithType,
   Quiz,
   QuizQuestion,
   QuizType,
-  SubmittedQuizAnswer
+  SubmittedQuizAnswer,
 } from "./types.js";
 
 export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
@@ -168,31 +168,45 @@ const getDBQuizQuestions = async (id: string, userId: string | null) => {
 
 const gradeMcqAnswers = async (
   quizId: string,
-  userAnswers: SubmittedQuizAnswer[]
-): Promise<{result: QuestionResult[], score: number}> => {
+  userAnswers: SubmittedQuizAnswer[],
+): Promise<{ result: FormattedResult[]; score: number }> => {
   const query = `
-    SELECT question_id, answer, explanation, question_text, type
+    SELECT question_id, answer, explanation, options, question_text, type
     FROM questions
     WHERE quiz_id = $1 AND type = 'mcq'
   `;
   const { rows } = await pool.query<QuestionResultWithType>(query, [quizId]);
 
-  let agg = 0
+  let agg = 0;
 
-  const result =  rows.map((dbQuestion) => {
-    const submitted = userAnswers.find((ans) => ans.question_id === dbQuestion.question_id);
-    if(submitted?.answer_id === dbQuestion.answer) agg++
+  const result: FormattedResult[] = rows.map((dbQuestion) => {
+    const submitted = userAnswers.find(
+      (ans) => ans.question_id === dbQuestion.question_id,
+    );
+    if (submitted?.answer_id === dbQuestion.answer) agg++;
     return {
       question_id: dbQuestion.question_id,
-      answer: dbQuestion.answer,
+      answer: {
+        id: dbQuestion.answer,
+        val:
+          dbQuestion.options.find(
+            ({ optionId }) => optionId === dbQuestion.answer,
+          )?.value || "",
+      },
       explanation: dbQuestion.explanation,
       question_text: dbQuestion.question_text,
-      userAnswer: submitted?.answer_id || "",
+      userAnswer: {
+        id: submitted?.answer_id || "",
+        val:
+          dbQuestion.options.find(
+            ({ optionId }) => optionId === submitted?.answer_id,
+          )?.value || "",
+      },
     };
   });
 
   const score = rows.length > 0 ? (agg / rows.length) * 100 : 0;
-  return {score, result}
+  return { score, result };
 };
 
 const gradeQuizAttempt = async (
@@ -201,7 +215,7 @@ const gradeQuizAttempt = async (
   userId: string | null,
 ) => {
   const answersQuery = await pool.query<QuestionResultWithType>(
-    "SELECT answer, question_id, explanation FROM questions WHERE quiz_id = $1",
+    "SELECT answer, question_id, options, explanation FROM questions WHERE quiz_id = $1",
     [quizId],
   );
 
@@ -217,7 +231,7 @@ const gradeQuizAttempt = async (
     throw new Error("Submitted answers contain invalid question IDs");
   }
 
-  const res = await gradeMcqAnswers(quizId, answers)
+  const res = await gradeMcqAnswers(quizId, answers);
 
   //Only store attempt when user id is available
   if (userId) {
@@ -226,13 +240,16 @@ const gradeQuizAttempt = async (
     VALUES ($1, $2, $3::jsonb, $4, 'finished')
   `;
 
-  await pool.query(query, [quizId, userId, JSON.stringify(answers), res.score.toFixed(0)]);
+    await pool.query(query, [
+      quizId,
+      userId,
+      JSON.stringify(answers),
+      res.score.toFixed(0),
+    ]);
   }
 
   return res;
 };
-
-
 
 export {
   getDBQuizDetails,

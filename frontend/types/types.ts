@@ -74,10 +74,10 @@ export type QuizType = "mcq" | "theory" | "both";
 
 export interface QuestionResult {
   question_id: string;
-  answer: string;
+  answer: {id: string, val: string};
   explanation: string | null;
   question_text: string;
-  userAnswer: string;
+  userAnswer: {id: string, val: string};
 }
 
 export interface FormFields {

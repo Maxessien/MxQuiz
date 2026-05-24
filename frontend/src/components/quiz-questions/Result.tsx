@@ -14,10 +14,10 @@ interface ResultProps {
 
 const Result: React.FC<ResultProps> = ({ score, results, onRetake, onBack }) => {
   const correct = results.filter(
-    (q) => q.userAnswer && q.userAnswer === q.answer
+    (q) => q.userAnswer.id && q.userAnswer.id === q.answer.id
   ).length;
   const skipped = results.filter(
-    (q) => !q.userAnswer || q.userAnswer.trim() === ""
+    (q) => !q.userAnswer.id || q.userAnswer.id.trim() === ""
   ).length;
   const incorrect = results.length - correct - skipped;
 

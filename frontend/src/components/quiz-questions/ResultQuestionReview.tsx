@@ -16,8 +16,8 @@ const ResultQuestionReview: React.FC<ResultQuestionReviewProps> = ({
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const getStatus = (q: QuestionResult) => {
-    if (!q.userAnswer || q.userAnswer.trim() === "") return "skipped";
-    if (q.userAnswer === q.answer) return "correct";
+    if (!q.userAnswer.id || q.userAnswer.id.trim() === "") return "skipped";
+    if (q.userAnswer.id === q.answer.id) return "correct";
     return "incorrect";
   };
 
@@ -127,7 +127,7 @@ const ResultQuestionReview: React.FC<ResultQuestionReviewProps> = ({
                             : "bg-red-500/10 border-red-500/30 text-red-400"
                         }`}
                       >
-                        {status === "skipped" ? "Skipped" : q.userAnswer}
+                        {status === "skipped" ? "Skipped" : q.userAnswer.val}
                       </div>
                     </div>
                     <div>
@@ -135,7 +135,7 @@ const ResultQuestionReview: React.FC<ResultQuestionReviewProps> = ({
                         Correct Answer
                       </span>
                       <div className="p-3 rounded border bg-green-500/10 border-green-500/30 text-green-400">
-                        {q.answer}
+                        {q.answer.val}
                       </div>
                     </div>
                   </div>

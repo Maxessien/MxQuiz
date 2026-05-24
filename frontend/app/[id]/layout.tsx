@@ -1,4 +1,5 @@
 import SignOutUser from "@/src/components/auth/SignOutUser";
+import PublicAppLayout from "@/src/components/layouts/PublicAppLayout";
 import { getUserServerSide } from "@/src/utils/fetchers";
 import { SESSION_COOKIE_NAME } from "@/src/utils/regUtils";
 import { cookies } from "next/headers";
@@ -13,7 +14,7 @@ const UserLayoutPage = async ({children}: {children: ReactNode}) => {
 
   if (!user) return <SignOutUser />
 
-  return children;
+  return <PublicAppLayout>{children}</PublicAppLayout>;
 };
 
 export default UserLayoutPage;

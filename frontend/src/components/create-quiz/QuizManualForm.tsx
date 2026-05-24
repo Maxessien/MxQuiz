@@ -1,5 +1,9 @@
 /* eslint-disable react-hooks/incompatible-library */
+import { submitQuizQuestions } from "@/src/utils/regUtils";
+import { useAppSelector } from "@/store";
 import { CreateQuizManualForm, GenQuizQuestionsRes } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "nextjs-toploader/app";
 import { useCallback, useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -18,6 +22,8 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
   } = useForm<CreateQuizManualForm>({
     defaultValues: initForm,
   });
+
+  const {idToken} = useAppSelector(state=> state.user)
 
   const { append, update, remove } = useFieldArray({ control, name: "questions" });
 
@@ -50,9 +56,20 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
     addNewQuestion();
   }, [addNewQuestion]);
 
+  const router = useRouter()
+
+  const {mutateAsync, isPending} = useMutation<void, Error, CreateQuizManualForm>({
+    mutationFn: (data)=> submitQuizQuestions(data, idToken),
+    onSuccess: ()=>{
+      toast.success("Quiz Created")
+      router.push("/quiz")
+    },
+    onError: ()=> toast.error("Failed to create quiz, try again later")
+  })
+
   return (
     <form
-      onSubmit={handleSubmit(() => null)}
+      onSubmit={handleSubmit((data) => mutateAsync(data))}
       className="w-full space-y-6 max-w-7xl mx-auto px-4"
     >
       <div className="flex flex-col gap-6 items-start md:grid md:grid-cols-[38%_62%]">
@@ -98,7 +115,7 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
 
       {/* Form Submission Action Area */}
       <div className="pt-4 border-t border-(--text-secondary-light)/10 flex justify-center">
-        <Button attrs={{type: "submit"}} width="w-full max-w-lg">Publish Quiz</Button>
+        <Button attrs={{type: "submit", disabled: isPending}} width="w-full max-w-lg">{isPending ? "Publishing..." : "Publish Quiz"}</Button>
       </div>
     </form>
   );

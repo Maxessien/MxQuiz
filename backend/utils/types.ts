@@ -29,7 +29,7 @@ export interface Quiz {
 
 export interface QuizQuestionOption {
   optionId: string;
-  value: string | number;
+  value: string;
 }
 
 export interface QuizQuestion {
@@ -67,9 +67,15 @@ export interface QuestionResult {
   answer: string,
   explanation: string | null,
   question_text: string
-  userAnswer: string
+  userAnswer: string,
+  options: QuizQuestionOption[]
 }
 
 export interface QuestionResultWithType extends QuestionResult {
-  type: "mcq" | "theory"
+  type: "mcq" | "theory",
+}
+
+export interface FormattedResult extends Pick<QuestionResult, "explanation" | "question_id" | "question_text"> {
+  answer: {id: string, val: string},
+  userAnswer: {id: string, val: string}
 }
