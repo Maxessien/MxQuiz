@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useAppSelector } from "@/store";
@@ -6,8 +7,37 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
 import { ReactNode, useState } from "react";
 import { FaUser } from "react-icons/fa";
-import { HiMenu, HiX } from "react-icons/hi";
+import { HiCollection, HiHome, HiMenu, HiPencilAlt, HiX } from "react-icons/hi";
 import Button from "../reusable/Button";
+
+// ─── Shared avatar component ──────────────────────────────────────────────────
+
+const UserAvatar = ({
+  avatarUrl,
+  size = "w-9 h-9",
+}: {
+  avatarUrl: string;
+  size?: string;
+}) => {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt="avatar"
+        className={`${size} rounded-full object-cover border-2 border-(--main-primary)`}
+      />
+    );
+  }
+  return (
+    <div
+      className={`${size} rounded-full border-2 border-(--text-primary-light) flex items-center justify-center shrink-0`}
+    >
+      <FaUser />
+    </div>
+  );
+};
+
+// ─── Mobile / top-bar nav item (unchanged) ────────────────────────────────────
 
 const NavItem = ({
   isActive,
@@ -30,16 +60,116 @@ const NavItem = ({
   );
 };
 
+// ─── Desktop sidebar nav item ─────────────────────────────────────────────────
+
+const SideNavItem = ({
+  icon,
+  isActive,
+  location,
+  text,
+}: {
+  location: string;
+  isActive?: boolean;
+  text: string;
+  icon: ReactNode;
+}) => {
+  const pathname = usePathname();
+  const active = isActive || location === pathname;
+  return (
+    <Link
+      href={location}
+      className={`flex items-center gap-3 w-full text-base font-medium px-4 py-3 rounded-md transition-all border-l-4 hover:bg-(--main-tertiary-light) ${
+        active
+          ? "border-l-(--main-primary) bg-(--main-tertiary-light) text-(--main-primary-lighter)"
+          : "border-l-transparent"
+      }`}
+    >
+      <span className="text-xl shrink-0">{icon}</span>
+      {text}
+    </Link>
+  );
+};
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
 const PublicAppLayout = ({ children }: { children: ReactNode }) => {
   const [showNav, setShowNav] = useState(false);
   const pathname = usePathname();
   const { width } = useAppSelector((state) => state.app);
-  const { isLoggedIn } = useAppSelector((state) => state.user);
-
+  const { isLoggedIn, avatarUrl, name, userId } = useAppSelector(
+    (state) => state.user,
+  );
   const router = useRouter();
+
   return (
-    <main>
-      <header className="w-full bg-(--main-secondary-light) px-3 sm:px-5 lg:px-8 py-4 flex justify-between items-center gap-2">
+    <main className="flex flex-col min-h-screen md:flex-row">
+
+      {/* ── Desktop sidebar (md and above) ───────────────────────────────── */}
+      <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-60 bg-(--main-secondary-light) border-r border-(--main-tertiary-light) z-40">
+
+        {/* Logo */}
+        <div className="px-5 py-5 border-b border-(--main-tertiary-light)">
+          <h1 className="text-2xl font-semibold">Max Quiz</h1>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
+          <SideNavItem location="/" text="Home" icon={<HiHome />} />
+          <SideNavItem
+            location="/quiz"
+            text="Quizzes"
+            icon={<HiCollection />}
+            isActive={pathname.startsWith("/quiz")}
+          />
+          <SideNavItem
+            location="/quiz/create"
+            text="Create Quiz"
+            icon={<HiPencilAlt />}
+          />
+        </nav>
+
+        {/* User / auth section pinned to bottom */}
+        <div className="p-4 border-t border-(--main-tertiary-light)">
+          {isLoggedIn ? (
+            <Link
+              href={`/${userId}`}
+              className="flex items-center gap-3 hover:bg-(--main-tertiary-light) rounded-md p-2 transition-all"
+            >
+              <UserAvatar avatarUrl={avatarUrl} size="w-9 h-9" />
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-semibold truncate">
+                  {name || "My Account"}
+                </span>
+                <span className="text-xs text-(--text-secondary)">
+                  View Profile
+                </span>
+              </div>
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <Button
+                attrs={{ onClick: () => router.push("/login") }}
+                color="tertiary"
+                rounded="rounded-md"
+                width="w-full"
+              >
+                Sign In
+              </Button>
+              <Button
+                attrs={{ onClick: () => router.push("/register") }}
+                color="secondary"
+                rounded="rounded-md"
+                width="w-full"
+              >
+                Sign Up
+              </Button>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ── Mobile header (below md, unchanged) ──────────────────────────── */}
+      <header className="md:hidden w-full bg-(--main-secondary-light) px-3 sm:px-5 py-4 flex justify-between items-center gap-2">
         <div className="flex-1 flex justify-between items-center gap-2 max-w-5xl">
           <h1 className="text-2xl font-semibold">Max Quiz</h1>
           <button
@@ -86,14 +216,18 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                     </Button>
                   </>
                 ) : (
-                  <div className="sm:hidden"><NavItem location="/profile" text="Profile" /></div>
+                  <div className="sm:hidden">
+                    <NavItem location="/profile" text="Profile" />
+                  </div>
                 )}
               </ul>
             </div>
           )}
         </div>
+
+        {/* Right side of mobile header */}
         {!isLoggedIn ? (
-          <div className="hidden md:flex justify-center items-center gap-2">
+          <div className="hidden sm:flex justify-center items-center gap-2">
             <Button
               attrs={{ onClick: () => router.push("/login") }}
               color="tertiary"
@@ -110,14 +244,17 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
             </Button>
           </div>
         ) : (
-          <div className="flex justify-end">
-            <div className="p-3 rounded-full border-(--text-primary-light) border-2">
-              <FaUser />
-            </div>
-          </div>
+          <button
+            onClick={() => router.push(`/${userId}`)}
+            className="flex justify-end cursor-pointer"
+          >
+            <UserAvatar avatarUrl={avatarUrl} size="w-10 h-10" />
+          </button>
         )}
       </header>
-      <section>{children}</section>
+
+      {/* ── Page content ─────────────────────────────────────────────────── */}
+      <section className="flex-1 md:ml-60">{children}</section>
     </main>
   );
 };
