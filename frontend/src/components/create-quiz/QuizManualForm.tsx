@@ -1,71 +1,105 @@
 /* eslint-disable react-hooks/incompatible-library */
 import { CreateQuizManualForm, GenQuizQuestionsRes } from "@/types/types";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import { v4 } from "uuid";
 import Button from "../reusable/Button";
 import QuizInfoForm from "./QuizInfoForm";
 import QuizQuestionForm from "./QuizQuestionForm";
 
-const QuizManualForm = ({initForm}: {initForm: CreateQuizManualForm}) => {
+const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
   const {
     register,
     formState: { errors },
     handleSubmit,
-    setValue,
-    getValues,
     watch,
+    control,
   } = useForm<CreateQuizManualForm>({
-    defaultValues: initForm});
+    defaultValues: initForm,
+  });
 
-  const addNewQuestion = () => {
+  const { append, update, remove } = useFieldArray({ control, name: "questions" });
+
+  const addNewQuestion = useCallback(() => {
     const firstOptId = v4();
-    setValue("questions", [
-      ...getValues("questions"),
-      {
-        answer: firstOptId,
-        explanation: "",
-        options: [{ optionId: firstOptId, value: "" }],
-        question_text: "",
-        type: "mcq",
-      },
-    ]);
-  };
-
-  const editQuestion = (idx: number, value: GenQuizQuestionsRes) => {
-    const questions = getValues("questions");
-    questions[idx] = value;
-    setValue("questions", questions);
-  };
+    append({
+      answer: firstOptId,
+      explanation: "",
+      options: [{ optionId: firstOptId, value: "" }],
+      question_text: "",
+      type: "mcq",
+    });
+  }, [append]);
 
   const questions = watch("questions");
 
+  const editQuestion = (idx: number, value: GenQuizQuestionsRes) => {
+    update(idx, value);
+  };
+
+  const deleteQuestion = (idx: number)=>{
+    if (questions.length <= 1){
+      toast.warn("Quiz must have at least one question")
+      return
+    }
+    remove(idx)
+  }
+
+  useEffect(() => {
+    addNewQuestion();
+  }, [addNewQuestion]);
+
   return (
-    // TODO submission logic
-    <form onSubmit={handleSubmit(() => null)}>
-      <div className="flex flex-col gap-3 items-center md:grid md:grid-cols-[40%_60%]">
+    <form
+      onSubmit={handleSubmit(() => null)}
+      className="w-full space-y-6 max-w-7xl mx-auto px-4"
+    >
+      <div className="flex flex-col gap-6 items-start md:grid md:grid-cols-[38%_62%]">
+        {/* Left Panel: Configuration Info */}
         <QuizInfoForm errs={errors} register={register} />
-        <section className="w-full rounded-md border-(--text-secondary) space-y-3 px-3 py-5 border-2">
-          <h2 className="text-xl font-medium">Add Question</h2>
-          {questions.map((q, idx) => {
-            return (
-              <QuizQuestionForm
-                editQuestion={editQuestion}
-                question={q}
+
+        {/* Right Panel: Content Builder */}
+        <section className="w-full rounded-xl border border-(--text-secondary-light)/30 bg-(--main-tertiary) space-y-5 p-5 md:p-6 shadow-lg">
+          <div className="flex justify-between items-center pb-2 border-b border-(--text-secondary-light)/20">
+            <h2 className="text-xl font-bold text-(--text-primary)">
+              Quiz Questions
+            </h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-(--main-primary)/10 text-(--main-primary-light)">
+              Total: {questions.length}
+            </span>
+          </div>
+
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-hide">
+            {questions.map((q, idx) => (
+              <div
                 key={idx}
-                questionIdx={idx}
-              />
-            );
-          })}
+                className="p-4 rounded-lg bg-(--main-tertiary-light) border border-(--text-secondary-light)/10"
+              >
+                <QuizQuestionForm
+                  editQuestion={editQuestion}
+                  deleteQuestion={deleteQuestion}
+                  question={q}
+                  questionIdx={idx}
+                />
+              </div>
+            ))}
+          </div>
+
           <Button
             attrs={{ type: "button", onClick: addNewQuestion }}
             color="tertiary"
-            width="w-full max-w-lg mx-auto"
+            width="w-full"
           >
-            Add New Question
+            + Add New Question
           </Button>
         </section>
       </div>
-      <Button width="w-full max-w-xl mx-auto">Publish</Button>
+
+      {/* Form Submission Action Area */}
+      <div className="pt-4 border-t border-(--text-secondary-light)/10 flex justify-center">
+        <Button width="w-full max-w-lg">Publish Quiz</Button>
+      </div>
     </form>
   );
 };

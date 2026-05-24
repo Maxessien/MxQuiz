@@ -14,117 +14,112 @@ const QuizPreferences = ({
   errs: FieldErrors<CreateQuizForm>
 }) => {
   return (
-    <div className="w-full p-3 rounded-lg border-(--text-secondary-light) border-2">
-      <h3 className="font-semibold text-xl md:text-2xl text-left">
+    <div className="w-full p-5 rounded-xl border border-(--text-secondary-light)/30 bg-(--main-tertiary) space-y-5 shadow-lg">
+      <h3 className="font-bold text-xl md:text-2xl text-left text-(--text-primary)">
         Quiz Preferences
       </h3>
-      <div className="flex gap-3 items-center flex-wrap">
-        <div className="space-y-3 flex-1">
-          <h4 className="text-lg md:text-xl text-left font-medium">
+      
+      <div className="flex gap-6 items-start flex-wrap">
+        {/* Quiz Type Selection */}
+        <div className="space-y-3 flex-1 min-w-70">
+          <h4 className="text-sm md:text-base text-left font-semibold uppercase tracking-wider text-(--text-secondary)">
             Quiz Type
           </h4>
-          <div className="w-full flex-wrap justify-center flex gap-2 items-center">
+          <div className="w-full flex flex-wrap gap-2">
+            {/* MCQ Option */}
             <label
-              className="rounded-md flex-1 px-2 py-2 border-2 font-medium text-center text-base md:text-lg border-(--text-secondary)"
+              className="flex-1 min-w-20 rounded-lg px-3 py-2.5 border-2 font-medium text-center text-base cursor-pointer transition-all duration-200
+              border-(--text-secondary-light)/40 hover:border-(--main-primary-light)
+              has-checked:border-(--main-primary) has-checked:bg-(--main-primary)/10 has-checked:text-(--text-primary-light)"
               htmlFor="quiz_type_1"
             >
               <input
                 defaultChecked
                 {...register("qType", {
                   required: "A quiz type is required",
-                  validate: (val) => {
-                    const allowedVals = ["mcq", "theory", "both"];
-                    if (!allowedVals.includes(val)) return "Invalid quiz type";
-                    return true;
-                  },
+                  validate: (val) => ["mcq", "theory", "both"].includes(val) || "Invalid quiz type",
                 })}
                 className="hidden"
                 type="radio"
                 id="quiz_type_1"
-                value={"mcq"}
+                value="mcq"
               />
               <span>MCQ</span>
             </label>
+
+            {/* Theory Option (Disabled) */}
             <label
-              className="rounded-md flex-1 px-2 py-2 border-2 font-medium text-center text-base md:text-lg border-(--text-secondary)"
+              className="flex-1 min-w-20 rounded-lg px-3 py-2.5 border-2 font-medium text-center text-base opacity-40 cursor-not-allowed border-(--text-secondary-light)/20"
               htmlFor="quiz_type_2"
             >
               <input
                 disabled
-                {...register("qType", {
-                  required: "A quiz type is required",
-                  validate: (val) => {
-                    const allowedVals = ["mcq", "theory", "both"];
-                    if (!allowedVals.includes(val)) return "Invalid quiz type";
-                    return true;
-                  },
-                })}
+                {...register("qType")}
                 className="hidden"
                 type="radio"
                 id="quiz_type_2"
-                value={"theory"}
+                value="theory"
               />
               <span>Theory</span>
             </label>
+
+            {/* Mixed Option (Disabled) */}
             <label
-              className="rounded-md flex-1 px-2 py-2 border-2 font-medium text-center text-base md:text-lg border-(--text-secondary)"
+              className="flex-1 min-w-20 rounded-lg px-3 py-2.5 border-2 font-medium text-center text-base opacity-40 cursor-not-allowed border-(--text-secondary-light)/20"
               htmlFor="quiz_type_3"
             >
               <input
                 disabled
-                {...register("qType", {
-                  required: "A quiz type is required",
-                  validate: (val) => {
-                    const allowedVals = ["mcq", "theory", "both"];
-                    if (!allowedVals.includes(val)) return "Invalid quiz type";
-                    return true;
-                  },
-                })}
+                {...register("qType")}
                 className="hidden"
                 type="radio"
                 id="quiz_type_3"
-                value={"both"}
+                value="both"
               />
               <span>Mixed</span>
             </label>
           </div>
-          {errs.qType && <p className="text-sm text-(--text-errors) font-medium">{errs.qType.message}</p>}
+          {errs.qType && (
+            <p className="text-xs text-(--text-errors) font-medium mt-1">{errs.qType.message}</p>
+          )}
         </div>
 
-        <div className="flex-1 space-y-2">
-          <h4 className="text-lg md:text-xl text-left font-medium">
+        {/* Number of Questions Counter */}
+        <div className="flex-1 min-w-70 space-y-3">
+          <h4 className="text-sm md:text-base text-left font-semibold uppercase tracking-wider text-(--text-secondary)">
             Number of Questions
           </h4>
-          <div className="flex w-full mx-auto max-w-90 justify-center items-center">
+          <div className="flex w-full max-w-xs h-11 items-center rounded-lg border-2 border-(--text-secondary-light)/40 overflow-hidden focus-within:border-(--main-primary) transition-colors">
             <button
-              onClick={() => {
-                if (questionCount <= 1) return;
-                setVal("qCount", Number(questionCount) - 1);
-              }}
-              className="text-xl bg-(--text-secondary-light) h-full px-3 font-semibold flex justify-center items-center"
+              type="button"
+              disabled={questionCount <= 1}
+              onClick={() => setVal("qCount", Math.max(1, Number(questionCount) - 1))}
+              className="text-sm bg-(--main-tertiary-light) hover:bg-(--text-secondary-light)/20 disabled:opacity-30 disabled:hover:bg-transparent h-full px-4 text-(--text-primary) transition-colors border-r border-(--text-secondary-light)/20"
             >
               <FaMinus />
             </button>            
             <input
-              className="flex-1 px-3 py-2 text-center text-base font-semibold focus:border-2 focus:border-(--main-primary)"
+              className="w-full h-full bg-transparent text-center text-lg font-bold text-(--text-primary) focus:outline-none"
               type="text"
+              readOnly
               {...register("qCount", {
                 required: "Question count is required",
-                max: { value: 20, message: "Question count cannot exceed 20" },
-                min: { value: 1, message: "Question count cannot be below 1" },
+                max: { value: 20, message: "Maximum is 20 questions" },
+                min: { value: 1, message: "Minimum is 1 question" },
               })}
             />
             <button
-              onClick={() => {
-                if (questionCount >= 20) return;
-                setVal("qCount", Number(questionCount) + 1);
-              }}
-              className="text-xl h-full bg-(--text-secondary-light) px-3 font-semibold flex justify-center items-center"
+              type="button"
+              disabled={questionCount >= 20}
+              onClick={() => setVal("qCount", Math.min(20, Number(questionCount) + 1))}
+              className="text-sm bg-(--main-tertiary-light) hover:bg-(--text-secondary-light)/20 disabled:opacity-30 disabled:hover:bg-transparent h-full px-4 text-(--text-primary) transition-colors border-l border-(--text-secondary-light)/20"
             >
               <FaPlus />
             </button>          
-            </div>
-          {errs.qCount && <p className="text-sm text-(--text-errors) font-medium">{errs.qCount.message}</p>}
+          </div>
+          {errs.qCount && (
+            <p className="text-xs text-(--text-errors) font-medium mt-1">{errs.qCount.message}</p>
+          )}
         </div>
       </div>
     </div>

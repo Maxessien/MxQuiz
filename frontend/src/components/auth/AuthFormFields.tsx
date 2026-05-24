@@ -3,8 +3,9 @@ import {
   InputHTMLAttributes,
   LabelHTMLAttributes,
   ReactNode,
+  TextareaHTMLAttributes,
 } from "react";
-import { useForm } from "react-hook-form";
+
 
 const Input = ({
   attrs,
@@ -21,6 +22,23 @@ const Input = ({
         extraClassNames
       }
       type="text"
+    />
+  );
+};
+const TextArea = ({
+  attrs,
+  extraClassNames,
+}: {
+  attrs?: TextareaHTMLAttributes<HTMLTextAreaElement>;
+  extraClassNames?: string;
+}) => {
+  return (
+    <textarea
+      {...attrs}
+      className={
+        "w-full h-25 max-w-lg rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-1 " +
+        extraClassNames
+      }
     />
   );
 };
@@ -82,4 +100,5 @@ const FieldWrapper = ({
   );
 };
 
-export { Input, Label, Errors, FieldWrapper };
+export { Errors, FieldWrapper, Input, Label, TextArea };
+
