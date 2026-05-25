@@ -8,10 +8,6 @@ import logger from "../utils/logger.js";
 import { IS_DEVELOPMENT, SESSION_COOKIE_NAME } from "../utils/regHelpers.js";
 import { CreateUserReqBody } from "../utils/types.js";
 
-console.log("Project ID:", admin.app().options.projectId);
-// If using tenants:
-console.log("Target Tenant ID:", targetTenantId); 
-
 
 const createUser = async (req: Request, res: Response) => {
   let user: UserRecord | null = null
