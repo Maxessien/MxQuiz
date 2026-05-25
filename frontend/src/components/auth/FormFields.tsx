@@ -20,8 +20,8 @@ const Input = ({
       type="text"
       {...attrs}
       className={
-        "w-full max-w-lg rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-2 " +
-        extraClassNames
+        "w-full rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
+        (extraClassNames || "")
       }
     />
   );
@@ -80,18 +80,26 @@ const Select = ({
 
 const Label = ({
   attrs,
-  extraClassNames,
   children,
 }: {
   attrs?: LabelHTMLAttributes<HTMLLabelElement>;
-  extraClassNames?: string;
-  children: ReactNode;
+  children?: ReactNode;
 }) => {
   return (
-    <label {...attrs} className={"text-lg font-medium " + extraClassNames}>
+    <label
+      {...attrs}
+      className={
+        "text-(--text-primary-light) text-sm font-semibold mb-1.5 inline-block" +
+        (attrs?.className || "")
+      }
+    >
       {children}
     </label>
   );
+};
+
+const FieldWrapper = ({ children }: { children?: ReactNode }) => {
+  return <div className="flex flex-col w-full relative">{children}</div>;
 };
 
 const Errors = ({
@@ -110,28 +118,6 @@ const Errors = ({
     >
       {error}
     </p>
-  );
-};
-
-const FieldWrapper = ({
-  attrs,
-  children,
-  extraClassNames,
-}: {
-  attrs?: HTMLAttributes<HTMLDivElement>;
-  extraClassNames?: string;
-  children: ReactNode;
-}) => {
-  return (
-    <div
-      {...attrs}
-      className={
-        "w-full flex flex-col gap-2 justify-start items-start " +
-        extraClassNames
-      }
-    >
-      {children}
-    </div>
   );
 };
 

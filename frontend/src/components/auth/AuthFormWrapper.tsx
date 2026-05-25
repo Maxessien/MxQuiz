@@ -44,7 +44,7 @@ const AuthFormWrapper = ({
 
   return (
     <form
-      className="flex flex-col gap-6 w-full max-w-md mx-auto p-6 shadow-[2px_3px_3px_4px_var(--main-tertiary-light)] rounded-lg"
+      className="flex flex-col gap-5 w-full bg-(--main-tertiary) border border-(--main-tertiary-light) p-8 sm:p-10 rounded-2xl shadow-xl"
       onSubmit={handleSubmit((data) => mutateAsync(data))}
     >
       {fieldsToInclude.includes("name") && (
@@ -81,16 +81,17 @@ const AuthFormWrapper = ({
               attrs={{
                 id: "password",
                 type: !showPassword ? "password" : "text",
+                placeholder: "••••••••",
                 ...register("password", authFieldsRegisters.password[type]),
               }}
-              extraClassNames="pr-6"
+              extraClassNames="pr-12"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute top-1/2 right-2 font-medium text-base -translate-y-1/2"
+              className="absolute top-1/2 right-4 text-(--text-secondary) hover:text-(--text-primary-light) transition-colors -translate-y-1/2 flex items-center justify-center p-1"
             >
-              {!showPassword ? <FaEyeSlash /> : <FaEye />}
+              {!showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
             </button>
           </div>
           {errors.password && <Errors error={errors.password.message || ""} />}
@@ -99,8 +100,8 @@ const AuthFormWrapper = ({
 
       <Button
         attrs={{ type: "submit", disabled: isPending }}
-        className="mt-2 mx-auto"
-        width="w-full max-w-lg"
+        className="mt-6 mx-auto py-3 font-semibold text-[15px]"
+        width="w-full"
       >
         {isPending ? typeMappings[type].active : typeMappings[type].inActive}
       </Button>
