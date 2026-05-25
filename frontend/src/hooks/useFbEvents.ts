@@ -22,17 +22,22 @@ export const useAuthStateChange = (
     UserResponse,
     string[]
   >,
-  mutationOptions?: UseMutationOptions<{
-    token: string;
-    id: string;
-}, Error, User | null, unknown>
+  mutationOptions?: UseMutationOptions<
+    {
+      token: string;
+      id: string;
+    },
+    Error,
+    User | null,
+    unknown
+  >,
 ) => {
   const { isLoggedIn, userId, idToken } = useAppSelector((state) => state.user);
 
   const dispatch = useDispatch();
 
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useRouter();
+  const pathname = usePathname();
 
   const query = useQuery({
     enabled: isLoggedIn,
@@ -56,7 +61,7 @@ export const useAuthStateChange = (
     } else {
       dispatch(setUserState(defaultUserState));
       await removeAuthCookie();
-      throw new Error("User doesn't exist")
+      throw new Error("User doesn't exist");
     }
   };
 
@@ -75,9 +80,8 @@ export const useAuthStateChange = (
           userId: id,
         }),
       );
-      if (pathname==="/") router.push(`/${id}`)
     },
-    onError: ()=>{
+    onError: () => {
       dispatch(
         setUserState({
           avatarUrl: "",
@@ -89,7 +93,7 @@ export const useAuthStateChange = (
           userId: "",
         }),
       );
-    }
+    },
   });
 
   useEffect(() => {
@@ -115,6 +119,10 @@ export const useAuthStateChange = (
     idToken,
     isLoggedIn,
   ]);
+
+  useEffect(() => {
+    if (pathname === "/" && isLoggedIn) router.push(`/${userId}`);
+  }, [isLoggedIn, pathname, userId, router]);
 
   return { query, mutation };
 };

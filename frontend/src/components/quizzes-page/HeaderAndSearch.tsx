@@ -23,6 +23,7 @@ const HeaderAndSearch = ({toggleFilters}: {toggleFilters: ()=> void}) => {
   };
 
   const {width} = useAppSelector(state=> state.app)
+  const {userId, isLoggedIn} = useAppSelector(state=> state.user)
 
   return (
     <div className="flex flex-col gap-8 w-full">
@@ -58,11 +59,11 @@ const HeaderAndSearch = ({toggleFilters}: {toggleFilters: ()=> void}) => {
             Create Your Own Quiz
           </h3>
           <p className="text-xs text-(--text-secondary) mb-4">
-            Upload your lecture notes, PDFs or audio and get a custom quiz in
+            Upload your lecture notes or PDFs and get a custom quiz in
             seconds.
           </p>
-          <Button size="small" color="primary" className="w-max">
-            Generate Quiz ✨
+          <Button attrs={{onClick: ()=> router.push(isLoggedIn && userId.trim().length > 0 ? `/${userId}/create` : "/login")}} size="small" color="primary" className="w-max">
+            Create Quiz
           </Button>
         </div>
       </div>

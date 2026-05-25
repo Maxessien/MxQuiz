@@ -7,7 +7,7 @@ import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import {
   HiBookOpen,
@@ -119,6 +119,14 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
       console.error("Sign out error", error);
     }
   };
+
+  useEffect(() => {
+    const closeNav = () => {
+      setShowNav(false);
+    };
+
+    closeNav();
+  }, [pathname]);
 
   return (
     <main className="flex flex-col min-h-screen md:flex-row">

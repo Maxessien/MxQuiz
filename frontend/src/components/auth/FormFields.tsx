@@ -17,12 +17,12 @@ const Input = ({
 }) => {
   return (
     <input
+      type="text"
       {...attrs}
       className={
-        "w-full max-w-lg rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-1 " +
+        "w-full max-w-lg rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-2 " +
         extraClassNames
       }
-      type="text"
     />
   );
 };
@@ -65,7 +65,12 @@ const Select = ({
       }
     >
       {options.map(({ text, val }) => (
-        <option className="hover:bg-(--main-secondary) transition-all" {...optsAttrs} value={val} key={val}>
+        <option
+          className="hover:bg-(--main-secondary) transition-all"
+          {...optsAttrs}
+          value={val}
+          key={val}
+        >
           {text}
         </option>
       ))}
@@ -130,4 +135,5 @@ const FieldWrapper = ({
   );
 };
 
-export { Errors, FieldWrapper, Input, Label, TextArea, Select };
+export { Errors, FieldWrapper, Input, Label, Select, TextArea };
+
