@@ -54,8 +54,8 @@ const deleteQuiz = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
-      const query = "DELETE FROM quizzes WHERE quiz_id = $1";
-      await pool.query(query, [req.params.id]);
+      const query = "DELETE FROM quizzes WHERE quiz_id = $1 AND author_user_id = $2";
+      await pool.query(query, [req.params.id, req.auth?.uid]);
 
       return res.status(SUCCESS.OK).json({ message: "Deleted successfully" });
     },
