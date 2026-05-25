@@ -20,7 +20,7 @@ const Input = ({
       type={attrs?.type || "text"}
       {...attrs}
       className={
-        "w-full rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
+        "w-full rounded-xl bg-(--main-secondary) border border-(--main-tertiary-light) focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
         (extraClassNames || "")
       }
     />
@@ -38,7 +38,7 @@ const TextArea = ({
     <textarea
       {...attrs}
       className={
-        "w-full h-25 rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
+        "w-full h-25 rounded-xl bg-(--main-secondary) border border-(--main-tertiary-light) focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
         (extraClassNames || "")
       }
     />
@@ -60,7 +60,7 @@ const Select = ({
     <select
       {...attrs}
       className={
-        "w-full rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 " +
+        "w-full rounded-xl bg-(--main-secondary) border border-(--main-tertiary-light) focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 " +
         (extraClassNames || "")
       }
     >
