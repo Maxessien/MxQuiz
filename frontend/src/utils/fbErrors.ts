@@ -4,7 +4,7 @@ export const firebaseErrorMessages: Record<string, string> = {
   'auth/invalid-email': 'The email address is not valid.',
   'auth/user-disabled': 'This user account has been disabled.',
   'auth/user-not-found': 'No user found with this email address.',
-  'auth/wrong-password': 'The password entered is incorrect.',
+  'auth/wrong-password': 'The credentials provided are invalid.',
   'auth/weak-password': 'The password must be at least 6 characters long.',
   'auth/operation-not-allowed': 'This sign-in method is not enabled.',
   'auth/invalid-credential': 'The credentials provided are invalid.',
