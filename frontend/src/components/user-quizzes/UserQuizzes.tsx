@@ -58,7 +58,7 @@ const UserQuizzes = ({
                   className="flex justify-center disabled:opacity-65 bg-red-700 hover:bg-red-600 transition-colors cursor-pointer rounded-md px-3 py-2 w-full items-center gap-2"
                 >
                   <FaTrash />{" "}
-                  <span>{isPending ? "Deleting..." : "Delete"}</span>
+                  <span>Delete</span>
                 </button>
               </div>
             ))}
