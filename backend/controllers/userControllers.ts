@@ -4,6 +4,51 @@ import { CLIENT_ERROR, SUCCESS } from "../utils/httpCodes";
 import { gradeMcqAnswers, handleAsyncErrors } from "../utils/regHelpers";
 import { SubmittedQuizAnswer } from "../utils/types";
 
+const getUserDashboardStats = (req: Request, res: Response) =>
+  handleAsyncErrors(
+    res,
+    async () => {
+      const uid = req.auth?.uid;
+
+      const statsQuery = `
+        SELECT
+          (SELECT COUNT(*)::int FROM quizzes WHERE author_user_id = $1) AS total_quizzes_created,
+          (SELECT COUNT(*)::int FROM quiz_attempts WHERE user_id = $1 AND status = 'finished') AS total_attempts_taken,
+          (SELECT COALESCE(AVG(score), 0)::float FROM quiz_attempts WHERE user_id = $1 AND status = 'finished') AS average_score,
+          (SELECT COUNT(*)::int FROM quiz_attempts qa JOIN quizzes q ON qa.quiz_id = q.quiz_id WHERE q.author_user_id = $1) AS total_plays_on_user_quizzes
+      `;
+
+      const statsRes = await pool.query(statsQuery, [uid]);
+
+      const recentAttemptsQuery = `
+        SELECT a.attempt_id, a.quiz_id, a.score, a.created_at, q.title as quiz_title
+        FROM quiz_attempts a
+        JOIN quizzes q ON a.quiz_id = q.quiz_id
+        WHERE a.user_id = $1 AND a.status = 'finished'
+        ORDER BY a.created_at DESC
+        LIMIT 5
+      `;
+      const recentAttemptsRes = await pool.query(recentAttemptsQuery, [uid]);
+
+      const recentQuizzesQuery = `
+        SELECT quiz_id, title, created_at, status, visibility,
+        (SELECT COUNT(*)::int FROM quiz_attempts WHERE quiz_id = quizzes.quiz_id) AS attempts_count
+        FROM quizzes
+        WHERE author_user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 5
+      `;
+      const recentQuizzesRes = await pool.query(recentQuizzesQuery, [uid]);
+
+      return res.status(SUCCESS.OK).json({
+        stats: statsRes.rows[0],
+        recentAttempts: recentAttemptsRes.rows,
+        recentQuizzes: recentQuizzesRes.rows,
+      });
+    },
+    "Failed to get dashboard stats",
+  );
+
 const getUserAttempts = (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
@@ -49,5 +94,5 @@ const getAttemptDetails = (req: Request, res: Response) =>
     "Get attempt details",
   );
 
-export { getAttemptDetails, getUserAttempts };
+export { getAttemptDetails, getUserAttempts, getUserDashboardStats };
 

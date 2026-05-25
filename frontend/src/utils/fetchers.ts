@@ -175,3 +175,35 @@ export const getUserAttemptsDetails = async (token: string, id: string) => {
     return null;
   }
 };
+
+export const getUserDashboardStats = async (token: string) => {
+  try {
+    const stats = await authApi(token).get<{
+      stats: {
+        total_quizzes_created: number;
+        total_attempts_taken: number;
+        average_score: number;
+        total_plays_on_user_quizzes: number;
+      };
+      recentAttempts: {
+        attempt_id: string;
+        quiz_id: string;
+        score: number;
+        created_at: string;
+        quiz_title: string;
+      }[];
+      recentQuizzes: {
+        quiz_id: string;
+        title: string;
+        created_at: string;
+        status: string;
+        visibility: string;
+        attempts_count: number;
+      }[];
+    }>("/user/dashboard");
+    return stats.data;
+  } catch (err) {
+    logger.error("Get user dashboard stats", err);
+    return null;
+  }
+};
