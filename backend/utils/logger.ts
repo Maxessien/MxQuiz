@@ -49,6 +49,7 @@ class Logger {
 
   log(message: string, data: any = null) {
     const formatted = this.format("LOG", message, data);
+    console.log(formatted)
   }
 
   error(message: string, error?: any) {
