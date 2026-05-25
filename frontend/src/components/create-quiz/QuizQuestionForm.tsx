@@ -53,7 +53,7 @@ const QuizQuestionForm = ({
             initial={{ scaleY: 0 }}
             animate={{ scaleY: 1 }}
             exit={{ scaleY: 0 }}
-            transition={{ duration: 0.5, ease: "linear" }}
+            transition={{ duration: 0.2, ease: "linear" }}
             className="p-4 origin-top space-y-4"
           >
             {/* Toggle Form Format Type */}
