@@ -17,7 +17,7 @@ const Input = ({
 }) => {
   return (
     <input
-      type="text"
+      type={attrs?.type || "text"}
       {...attrs}
       className={
         "w-full rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
@@ -38,8 +38,8 @@ const TextArea = ({
     <textarea
       {...attrs}
       className={
-        "w-full h-25 max-w-lg rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-1 " +
-        extraClassNames
+        "w-full h-25 rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 placeholder:text-(--text-secondary) " +
+        (extraClassNames || "")
       }
     />
   );
@@ -60,13 +60,13 @@ const Select = ({
     <select
       {...attrs}
       className={
-        "w-full max-w-lg bg-(--main-secondary-light) rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-1 " +
-        extraClassNames
+        "w-full rounded-xl bg-(--main-secondary) border border-[#2a2d3a] focus:outline-none focus:ring-2 focus:ring-(--main-primary-light)/50 focus:border-(--main-primary-light) text-sm font-medium text-(--text-primary-light) transition-all px-4 py-3 " +
+        (extraClassNames || "")
       }
     >
       {options.map(({ text, val }) => (
         <option
-          className="hover:bg-(--main-secondary) transition-all"
+          className="hover:bg-(--main-secondary-light) transition-all"
           {...optsAttrs}
           value={val}
           key={val}
@@ -80,17 +80,19 @@ const Select = ({
 
 const Label = ({
   attrs,
+  extraClassNames,
   children,
 }: {
   attrs?: LabelHTMLAttributes<HTMLLabelElement>;
+  extraClassNames?: string;
   children?: ReactNode;
 }) => {
   return (
     <label
       {...attrs}
       className={
-        "text-(--text-primary-light) text-sm font-semibold mb-1.5 inline-block" +
-        (attrs?.className || "")
+        "text-(--text-primary-light) text-sm font-semibold mb-1.5 inline-block " +
+        (extraClassNames || "")
       }
     >
       {children}
@@ -98,8 +100,23 @@ const Label = ({
   );
 };
 
-const FieldWrapper = ({ children }: { children?: ReactNode }) => {
-  return <div className="flex flex-col w-full relative">{children}</div>;
+const FieldWrapper = ({
+  attrs,
+  extraClassNames,
+  children,
+}: {
+  attrs?: HTMLAttributes<HTMLDivElement>;
+  extraClassNames?: string;
+  children?: ReactNode;
+}) => {
+  return (
+    <div
+      {...attrs}
+      className={"flex flex-col w-full relative " + (extraClassNames || "")}
+    >
+      {children}
+    </div>
+  );
 };
 
 const Errors = ({
@@ -114,7 +131,7 @@ const Errors = ({
   return (
     <p
       {...attrs}
-      className={"text-sm font-medium text-red-700 " + extraClassNames}
+      className={"text-sm font-medium text-red-700 " + (extraClassNames || "")}
     >
       {error}
     </p>
