@@ -5,8 +5,6 @@ class Logger {
   }
 
   getCallerInfo() {
-    if (!this.isDevelopment) return null;
-
     const stack = new Error().stack;
     const stackLines = stack?.split("\n");
     // Skip: Error, getCallerInfo, format, and the log/error/warn/info method
@@ -41,20 +39,16 @@ class Logger {
       data,
     };
 
-    // Add caller info only in development
-    if (this.isDevelopment) {
       const caller = this.getCallerInfo();
       if (caller) {
         formatted.level = caller;
       }
-    }
 
     return formatted;
   }
 
   log(message: string, data: any = null) {
     const formatted = this.format("LOG", message, data);
-    if (this.isDevelopment) console.log(formatted);
   }
 
   error(message: string, error?: any) {
@@ -69,7 +63,6 @@ class Logger {
 
   info(message: string, data: any = null) {
     const formatted = this.format("INFO", message, data);
-    if (this.isDevelopment) console.info(formatted);
   }
 }
 
