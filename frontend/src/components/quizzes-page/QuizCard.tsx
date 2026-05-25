@@ -1,11 +1,18 @@
-"use client"
+"use client";
 
 import { useRouter } from "nextjs-toploader/app";
-import { FaRegBookmark, FaRegClock, FaRegQuestionCircle, FaStar, FaUserFriends } from "react-icons/fa";
+import {
+  FaRegBookmark,
+  FaRegClock,
+  FaRegQuestionCircle,
+  FaStar,
+  FaUserFriends,
+} from "react-icons/fa";
 import { MdOutlineAutoAwesome } from "react-icons/md";
 import { VscVerifiedFilled } from "react-icons/vsc";
 import { QuizCardProps } from "../../../types/componentTypes";
 import Button from "../reusable/Button";
+import Link from "next/link";
 
 const QuizCard = (props: QuizCardProps) => {
   const {
@@ -16,10 +23,10 @@ const QuizCard = (props: QuizCardProps) => {
     question_count,
     average_rating = 0,
     attempts_count = 0,
-    quiz_id, 
+    quiz_id,
   } = props;
 
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="flex flex-col bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-2xl p-5 hover:border-(--main-primary-light)/50 transition-colors group">
@@ -30,8 +37,13 @@ const QuizCard = (props: QuizCardProps) => {
             {title.substring(0, 1).toUpperCase()}
           </div>
           <div className="flex flex-col">
-            <h3 className="text-lg font-bold text-(--text-primary-light) line-clamp-1 group-hover:text-(--main-primary-light) transition-colors">
-              {title}
+            <h3>
+              <Link
+                href={`/quiz/${quiz_id}`}
+                className="text-lg font-bold text-(--text-primary-light) line-clamp-3 cursor-pointer hover:text-(--main-primary-light) hover:underline transition-colors"
+              >
+                {title}
+              </Link>
             </h3>
             <div className="flex items-center gap-2 text-sm text-(--text-secondary) mt-1">
               <span>By {author_name || ""}</span>
@@ -62,7 +74,10 @@ const QuizCard = (props: QuizCardProps) => {
           <FaRegClock /> {time_limit ? `${time_limit} min` : "N/A"}
         </div>
         <div className="flex items-center gap-1.5">
-          <FaUserFriends /> {attempts_count > 999 ? `${(attempts_count/1000).toFixed(1)}K` : attempts_count}
+          <FaUserFriends />{" "}
+          {attempts_count > 999
+            ? `${(attempts_count / 1000).toFixed(1)}K`
+            : attempts_count}
         </div>
       </div>
 
@@ -77,7 +92,12 @@ const QuizCard = (props: QuizCardProps) => {
         )}
 
         <div className="flex items-center gap-2 ml-auto">
-          <Button attrs={{onClick: ()=> router.push(`/quiz/${quiz_id}`)}} size="small" color="primary" className="px-5">
+          <Button
+            attrs={{ onClick: () => router.push(`/quiz/${quiz_id}`) }}
+            size="small"
+            color="primary"
+            className="px-5"
+          >
             Start
           </Button>
         </div>
