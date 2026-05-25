@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { auth } from "@/src/fbConfig";
 import { useAppSelector } from "@/store";
+import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
@@ -109,6 +111,15 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
   );
   const router = useRouter();
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Sign out error", error);
+    }
+  };
+
   return (
     <main className="flex flex-col min-h-screen md:flex-row">
       {/* ── Desktop sidebar (md and above) ───────────────────────────────── */}
@@ -159,20 +170,28 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
         {/* User / auth section pinned to bottom */}
         <div className="p-4 border-t border-(--main-tertiary-light)">
           {isLoggedIn ? (
-            <Link
-              href={`/${userId}/profile`}
-              className="flex items-center gap-3 hover:bg-(--main-tertiary-light) rounded-md p-2 transition-all"
-            >
-              <UserAvatar avatarUrl={avatarUrl} size="w-9 h-9" />
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-sm font-semibold truncate">
-                  {name || "My Account"}
-                </span>
-                <span className="text-xs text-(--text-secondary)">
-                  View Profile
-                </span>
-              </div>
-            </Link>
+            <div className="flex flex-col gap-2">
+              <Link
+                href={`/${userId}/profile`}
+                className="flex items-center gap-3 hover:bg-(--main-tertiary-light) rounded-md p-2 transition-all"
+              >
+                <UserAvatar avatarUrl={avatarUrl} size="w-9 h-9" />
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-sm font-semibold truncate">
+                    {name || "My Account"}
+                  </span>
+                  <span className="text-xs text-(--text-secondary)">
+                    View Profile
+                  </span>
+                </div>
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="w-full text-center px-4 py-2 mt-1 text-sm font-medium text-(--text-errors) border border-(--text-errors)/20 hover:bg-(--text-errors)/10 rounded-md transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <Button
@@ -202,25 +221,32 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
           <h1 className="text-2xl font-semibold">Max Quiz</h1>
           <button
             onClick={() => setShowNav(!showNav)}
-            className="font-medium cursor-pointer sm:hidden z-999 text-3xl"
+            className="font-medium cursor-pointer md:hidden z-999 text-3xl"
           >
             {showNav ? <HiX /> : <HiMenu />}
           </button>
-          {(showNav || width > 640) && (
-            <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-start pt-[20vh] items-center sm:justify-end">
-              <ul className="sm:w-full w-9/10 bg-(--main-secondary-light) px-3 sm:bg-transparent max-w-xl rounded-md flex-col sm:flex-row flex justify-end items-center gap-4 py-5 sm:p-0 sm:gap-2">
-                <li>
-                  {!isLoggedIn ? <NavItem location="/" text="Home" /> : <NavItem location={`/${userId}`} text="Dashboard" />}
+          {(showNav || width > 768) && (
+            <div className="flex-1 h-screen w-screen md:h-max md:w-max md:backdrop-blur-none z-99 backdrop-blur-lg fixed md:relative top-0 left-0 flex justify-center pt-[20vh] items-start md:justify-end">
+              <ul className="md:w-full w-9/10 bg-(--main-secondary-light) px-3 md:bg-transparent max-w-xl rounded-md flex-col md:flex-row flex justify-end items-center gap-4 py-5 md:p-0 md:gap-2">
+                <li className="w-full">
+                  {!isLoggedIn ? (
+                    <NavItem location="/" text="Home" />
+                  ) : (
+                    <NavItem location={`/${userId}`} text="Dashboard" />
+                  )}
                 </li>
-                <li>
+                <li className="w-full">
                   <NavItem
                     location="/quiz"
                     isActive={pathname.startsWith("/quiz")}
                     text="Quizzes"
                   />
                 </li>
-                <li>
-                  <NavItem location={isLoggedIn ? `/${userId}/create` : "/login"} text="Create Quiz" />
+                <li className="w-full">
+                  <NavItem
+                    location={isLoggedIn ? `/${userId}/create` : "/login"}
+                    text="Create Quiz"
+                  />
                 </li>
                 {!isLoggedIn ? (
                   <>
@@ -229,7 +255,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                       color="tertiary"
                       rounded="rounded-md"
                       width="w-full"
-                      className="sm:hidden"
+                      className="md:hidden"
                     >
                       Sign In
                     </Button>
@@ -238,15 +264,28 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                       color="secondary"
                       rounded="rounded-md"
                       width="w-full"
-                      className="sm:hidden"
+                      className="md:hidden"
                     >
                       Sign Up
                     </Button>
                   </>
                 ) : (
-                  <div className="sm:hidden">
-                    <NavItem location="/profile" text="Profile" />
-                  </div>
+                  <>
+                    <NavItem location={`/${userId}/quiz`} text="My Quizzes" />
+                    <NavItem
+                      location={`/${userId}/attempts`}
+                      text="My Attempts"
+                    />
+                    <div className="md:hidden w-full md:w-auto flex flex-col gap-2 mt-2 pt-4 border-t border-(--main-tertiary-light)">
+                      <NavItem location={`/${userId}/profile`} text="Profile" />
+                      <button
+                        onClick={handleSignOut}
+                        className="text-lg w-full block text-center font-medium text-(--text-errors) hover:bg-(--text-errors)/10 py-2 px-3 rounded-md transition-all cursor-pointer"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
                 )}
               </ul>
             </div>
@@ -274,7 +313,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
         ) : (
           <button
             onClick={() => router.push(`/${userId}`)}
-            className="sm:flex justify-end hidden cursor-pointer"
+            className="md:flex justify-end hidden cursor-pointer"
           >
             <UserAvatar avatarUrl={avatarUrl} size="w-10 h-10" />
           </button>

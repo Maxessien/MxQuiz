@@ -2,6 +2,7 @@ import { QuizCardProps } from "@/types/componentTypes";
 import {
   QuestionResult,
   QuizQuestionResponse,
+  UserAttemptResponse,
   UserResponse,
 } from "@/types/types";
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
@@ -143,3 +144,14 @@ export const getUserServerSide = async (
     return null;
   }
 };
+
+export const getUserAttempts = async(token: string)=>{
+  try {
+    const attempts = await authApi(token).get<UserAttemptResponse[]>("/user/attempts")
+
+    return attempts.data
+  } catch (err) {
+    logger.error("Get user attempts", err)
+    return []
+  }
+}

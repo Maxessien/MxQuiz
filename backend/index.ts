@@ -1,15 +1,16 @@
 import { config } from "dotenv";
 config();
 
-import {} from "multer";
+import { } from "multer";
 // import { startEmulator } from "offline-cloudinary";
 import app from "./configs/serverConfig.js";
 import authRoutes from "./routes/authRoutes.js";
+import questionsRoutes from "./routes/questionsRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import { createAllTables } from "./utils/createTables.js";
 import logger from "./utils/logger.js";
 import { DecodedTokenWithClaims, RequestImages } from "./utils/types.js";
-import questionsRoutes from "./routes/questionsRoutes.js";
 
 declare global {
   namespace Express {
@@ -25,6 +26,7 @@ declare global {
 app.use("/auth", authRoutes);
 app.use("/quiz", quizRoutes);
 app.use("/questions", questionsRoutes);
+app.use("/user", userRoutes);
 
 try {
   await createAllTables();

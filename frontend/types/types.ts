@@ -96,3 +96,13 @@ export interface CreateQuizForm {
   optCount: number;
   pdf: FileList;
 }
+
+export interface UserAttemptResponse {
+  attempt_id: string;
+  quiz_id: string;
+  score: number | null;
+  created_at: string;
+  quiz_title: string;
+  questions_count: string;
+}
+

@@ -94,7 +94,8 @@ export const createQuizAttemptsTable = async () => {
       user_id TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
       chosen_answers JSONB,
       score INTEGER,
-      status TEXT CHECK (status IN ('finished', 'unfinished')) DEFAULT 'unfinished'
+      status TEXT CHECK (status IN ('finished', 'unfinished')) DEFAULT 'unfinished',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
 

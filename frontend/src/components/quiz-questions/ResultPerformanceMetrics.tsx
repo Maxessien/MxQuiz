@@ -15,36 +15,19 @@ const ResultPerformanceMetrics: React.FC<ResultPerformanceMetricsProps> = ({
   skipped,
   total,
 }) => {
+  const getBorderStyle = (): {border: string} =>{
+    if (Number(score) > 70) return {border: "4px green solid"}
+    else if (Number(score) > 45) return {border: "4px yellow solid"}
+    else return {border: "4px red solid"}
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
       {/* Score Card */}
       <div className="bg-[#1C1E26] rounded-xl p-6 flex items-center justify-between border border-gray-800">
-        <div className="relative w-32 h-32 flex items-center justify-center">
-          <svg className="absolute inset-0 w-32 h-32 -rotate-90">
-            <circle
-              cx="64"
-              cy="64"
-              r="56"
-              stroke="rgb(55, 65, 81)"
-              strokeWidth="8"
-              fill="none"
-            />
-            <circle
-              cx="64"
-              cy="64"
-              r="56"
-              stroke="rgb(34, 197, 94)"
-              strokeWidth="8"
-              fill="none"
-              strokeDasharray={`${2 * Math.PI * 56}`}
-              strokeDashoffset={`${2 * Math.PI * 56 * (1 - score / 100)}`}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="text-center z-10 flex flex-col justify-center bg-[#1C1E26] rounded-full w-24 h-24">
-            <span className="text-2xl font-bold text-white">{Math.round(score)}%</span>
-            <span className="text-xs text-gray-400">Your Score</span>
-          </div>
+        <div style={getBorderStyle()} className={`text-center flex flex-col justify-center rounded-full w-24 h-24`}>
+          <span className="text-2xl font-bold text-white">{Math.round(score)}%</span>
+          <span className="text-xs text-gray-400">Your Score</span>
         </div>
         <div className="text-left ml-6">
           <h3 className="text-xl font-bold text-white mb-2 flex items-center">

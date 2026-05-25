@@ -1,6 +1,5 @@
-import { FaFlag, FaGlobe, FaRegCalendarAlt, FaRegCheckCircle, FaSyncAlt } from "react-icons/fa";
-import { FaRegFileAlt } from "react-icons/fa";
 import { QuizDetailsResponse } from "@/src/utils/fetchers";
+import { FaFlag, FaGlobe, FaRegCalendarAlt, FaRegCheckCircle, FaRegFileAlt, FaSyncAlt } from "react-icons/fa";
 
 interface Props {
   details: QuizDetailsResponse;
@@ -31,10 +30,6 @@ const AboutQuiz = ({ details }: Props) => {
         <div className="flex items-center gap-3 text-sm text-(--text-secondary)">
           <FaRegCheckCircle className="text-(--main-primary-light)" />
           {details.question_count} carefully crafted questions
-        </div>
-        <div className="flex items-center gap-3 text-sm text-(--text-secondary) capitalize">
-          <FaRegCheckCircle className="text-(--main-primary-light)" />
-          Mixed question types
         </div>
         {details.is_ai_generated && (
           <div className="flex items-center gap-3 text-sm text-(--text-secondary)">
