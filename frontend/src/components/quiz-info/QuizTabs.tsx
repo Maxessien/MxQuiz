@@ -14,7 +14,7 @@ const QuizTabs = ({ activeTab, setActiveTab, reviewsCount }: Props) => {
   ];
 
   return (
-    <div className="flex items-center gap-6 border-b border-(--main-tertiary-light) overflow-x-auto scrollbar-hide">
+    <div className="flex items-center w-full gap-6 border-b border-(--main-tertiary-light) overflow-x-auto scrollbar-hide">
       {tabs.map((tab) => (
         <button
           key={tab.id}

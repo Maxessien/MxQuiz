@@ -207,10 +207,10 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
             {showNav ? <HiX /> : <HiMenu />}
           </button>
           {(showNav || width > 640) && (
-            <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-center items-center sm:justify-end">
+            <div className="flex-1 h-screen w-screen sm:h-max sm:w-max sm:backdrop-blur-none z-99 backdrop-blur-lg fixed sm:relative top-0 left-0 flex justify-start pt-[20vh] items-center sm:justify-end">
               <ul className="sm:w-full w-9/10 bg-(--main-secondary-light) px-3 sm:bg-transparent max-w-xl rounded-md flex-col sm:flex-row flex justify-end items-center gap-4 py-5 sm:p-0 sm:gap-2">
                 <li>
-                  <NavItem location="/" text="Home" />
+                  {!isLoggedIn ? <NavItem location="/" text="Home" /> : <NavItem location={`/${userId}`} text="Dashboard" />}
                 </li>
                 <li>
                   <NavItem
@@ -220,7 +220,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
                   />
                 </li>
                 <li>
-                  <NavItem location="/quiz/create" text="Create Quiz" />
+                  <NavItem location={isLoggedIn ? `/${userId}/create` : "/login"} text="Create Quiz" />
                 </li>
                 {!isLoggedIn ? (
                   <>
@@ -274,7 +274,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
         ) : (
           <button
             onClick={() => router.push(`/${userId}`)}
-            className="flex justify-end cursor-pointer"
+            className="sm:flex justify-end hidden cursor-pointer"
           >
             <UserAvatar avatarUrl={avatarUrl} size="w-10 h-10" />
           </button>
