@@ -46,6 +46,7 @@ export const getQuizzes = async (
   type: QuizFilterType[] = ["mcq", "theory"],
   page: number = 1,
   limit: number = 20,
+  token?: string,
 ) => {
   try {
     const params = new URLSearchParams();
@@ -56,7 +57,11 @@ export const getQuizzes = async (
     if (search) params.append("search", search);
     type.forEach((t) => params.append("type", t));
 
-    const res = await regApi.get<QuizResponse[]>(`/quiz?${params.toString()}`);
+    const res = await regApi.get<QuizResponse[]>(
+      `/quiz?${params.toString()}`,
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    );
+    
     return res.data;
   } catch (err) {
     logger.error("Get Quiz", err);
@@ -145,27 +150,28 @@ export const getUserServerSide = async (
   }
 };
 
-export const getUserAttempts = async(token: string)=>{
+export const getUserAttempts = async (token: string) => {
   try {
-    const attempts = await authApi(token).get<UserAttemptResponse[]>("/user/attempts")
+    const attempts =
+      await authApi(token).get<UserAttemptResponse[]>("/user/attempts");
 
-    return attempts.data
+    return attempts.data;
   } catch (err) {
-    logger.error("Get user attempts", err)
-    return []
+    logger.error("Get user attempts", err);
+    return [];
   }
-}
+};
 
-export const getUserAttemptsDetails = async(token: string, id: string)=>{
+export const getUserAttemptsDetails = async (token: string, id: string) => {
   try {
     const attempts = await authApi(token).get<{
-    score: number;
-    result: QuestionResult[];
-  }>(`/user/attempts/${id}`)
+      score: number;
+      result: QuestionResult[];
+    }>(`/user/attempts/${id}`);
 
-    return attempts.data
+    return attempts.data;
   } catch (err) {
-    logger.error("Get user attempts", err)
-    return null
+    logger.error("Get user attempts", err);
+    return null;
   }
-}
+};

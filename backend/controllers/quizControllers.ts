@@ -11,6 +11,7 @@ import {
   storeQuizandQuestions,
 } from "../utils/regHelpers";
 import { Quiz, QuizQuestion, QuizType } from "../utils/types";
+import { auth } from "../configs/fbConfigs.js";
 
 interface QuizBody extends Quiz {
   questions: QuizQuestion[];
@@ -20,10 +21,17 @@ const createQuiz = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
-      const { description, status, time, title, isAiGen, visibility, questions } =
-        req.body as QuizBody;
+      const {
+        description,
+        status,
+        time,
+        title,
+        isAiGen,
+        visibility,
+        questions,
+      } = req.body as QuizBody;
 
-      const parsedTime = Number.isFinite(Number(time)) ? Number(time) : null
+      const parsedTime = Number.isFinite(Number(time)) ? Number(time) : null;
       await storeQuizandQuestions(
         {
           description,
@@ -40,6 +48,18 @@ const createQuiz = async (req: Request, res: Response) =>
       return res.status(SUCCESS.CREATED).json({ message: "Quiz created" });
     },
     "Create quiz err",
+  );
+
+const deleteQuiz = async (req: Request, res: Response) =>
+  handleAsyncErrors(
+    res,
+    async () => {
+      const query = "DELETE FROM quizzes WHERE quiz_id = $1";
+      await pool.query(query, [req.params.id]);
+
+      return res.status(SUCCESS.OK).json({ message: "Deleted successfully" });
+    },
+    "Delete quiz err",
   );
 
 const createQuizWithAi = async (req: Request, res: Response) =>
@@ -131,7 +151,7 @@ const createQuizWithAi = async (req: Request, res: Response) =>
     "Create quiz with ai",
   );
 
-const getPublicQuizzes = async (req: Request, res: Response) =>
+const getQuizzes = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
@@ -176,6 +196,13 @@ const getPublicQuizzes = async (req: Request, res: Response) =>
           ? `%${search.trim()}%`
           : "%";
 
+      // Decode user to attatch if token is present
+      const headers = req.headers.authorization;
+      const headerToken =
+        headers && headers.startsWith("Bearer ") ? headers.slice(7) : null;
+
+      const user = headerToken ? await auth.verifyIdToken(headerToken) : null;
+
       const query = `
       SELECT 
         q.quiz_id, q.title, q.description, q.time_limit, q.is_ai_generated, q.created_at,
@@ -187,6 +214,7 @@ const getPublicQuizzes = async (req: Request, res: Response) =>
       WHERE q.visibility = 'public' AND q.status = 'published'
         AND EXISTS (SELECT 1 FROM questions qs WHERE qs.quiz_id = q.quiz_id AND qs.type = ANY($1))
         AND (q.title ILIKE $2 OR q.description ILIKE $2)
+        ${user?.uid ? "AND q.author_user_id = $5" : ""}
       ORDER BY ${sortMap[cleanedSort as keyof typeof sortMap]} ${cleanedOrder}
       LIMIT $3 OFFSET $4
     `;
@@ -195,25 +223,12 @@ const getPublicQuizzes = async (req: Request, res: Response) =>
         searchParam,
         cleanedLimit,
         cleanedPage,
+        user?.uid
       ]);
 
       return res.status(SUCCESS.OK).json(quizzes.rows);
     },
     "Get public quizzes err",
-  );
-
-const getUserQuizzes = async (req: Request, res: Response) =>
-  handleAsyncErrors(
-    res,
-    async () => {
-      const userQuizzes = await pool.query(
-        "SELECT * FROM quizzes WHERE author_user_id=$1",
-        [req.auth?.uid],
-      );
-
-      return res.status(SUCCESS.OK).json(userQuizzes.rows);
-    },
-    "Get user quizzes err",
   );
 
 const getPublicQuizDetails = async (req: Request, res: Response) =>
@@ -243,7 +258,7 @@ const getPrivateQuizDetails = async (req: Request, res: Response) =>
       const id = req.params.id;
       const quiz = await getDBQuizDetails(
         typeof id === "string" ? id : id[0],
-        req.auth?.aud || null,
+        req.auth?.uid || null,
       );
 
       if (!quiz.rows[0])
@@ -259,8 +274,8 @@ const getPrivateQuizDetails = async (req: Request, res: Response) =>
 export {
   createQuiz,
   createQuizWithAi,
-  getPublicQuizzes,
-  getUserQuizzes,
+  getQuizzes,
   getPublicQuizDetails,
   getPrivateQuizDetails,
+  deleteQuiz
 };

@@ -3,10 +3,10 @@ import { multerUpload } from "../configs/fileUploadConfigs";
 import {
   createQuiz,
   createQuizWithAi,
+  deleteQuiz,
   getPrivateQuizDetails,
   getPublicQuizDetails,
-  getPublicQuizzes,
-  getUserQuizzes,
+  getQuizzes,
 } from "../controllers/quizControllers";
 import { userAuthMiddleware } from "../middlewares/authMiddleware";
 import { handleFileUpload } from "../middlewares/regMiddleware";
@@ -23,11 +23,12 @@ router.post(
   createQuizWithAi,
 );
 
-router.get("/", getPublicQuizzes);
-
-router.get("/user", userAuthMiddleware, getUserQuizzes);
+router.get("/", getQuizzes);
 
 router.get("/:id", getPublicQuizDetails);
+
+router.delete("/:id", userAuthMiddleware, deleteQuiz);
+
 router.get("/private/:id", userAuthMiddleware, getPrivateQuizDetails);
 
 const quizRoutes = router;

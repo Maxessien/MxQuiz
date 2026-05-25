@@ -11,6 +11,7 @@ import QuizPagination from './QuizPagination'
 const Quizzes = ({quizzes, page, totalPages}: {quizzes: QuizCardProps[], page?: number, totalPages: number}) => {
     const [showFilters, setShowFilters] = useState(false)
     const {width} = useAppSelector(state=> state.app)
+    
   return (
     <div className="w-full max-w-7xl px-4 sm:px-6 md:px-12 py-10 flex flex-col gap-10 lg:gap-14">
           {/* Header Section */}

@@ -7,16 +7,18 @@ import {
   QuizSortOrder,
 } from "@/src/utils/fetchers";
 
-const QuizzesPage = async ({
-  searchParams,
-}: {
-  searchParams: Promise<{
+export interface QuizSearchParams {
     sort?: QuizSortBy;
     order?: QuizSortOrder;
     type?: string;
     search?: string;
     page?: number;
-  }>;
+  }
+
+const QuizzesPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<QuizSearchParams>;
 }) => {
   const { order, search, sort, type, page } = await searchParams;
   const limit = 20;
