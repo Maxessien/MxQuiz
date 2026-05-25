@@ -27,7 +27,7 @@ const QuizCard = (props: QuizCardProps) => {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-2xl p-5 hover:border-(--main-primary-light)/50 transition-colors group">
+    <div className="flex flex-col flex-1 bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-2xl p-5 hover:border-(--main-primary-light)/50 transition-colors group">
       {/* Top Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex gap-4 items-center">
