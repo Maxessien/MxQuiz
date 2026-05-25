@@ -10,7 +10,8 @@ import {
 import { User } from "firebase/auth";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { authApi, regApi } from "../utils/api";
+import { removeAuthCookie, setAuthCookie } from "../actions/auth";
+import { authApi } from "../utils/api";
 
 export const useAuthStateChange = (
   queryOptions?: UndefinedInitialDataOptions<
@@ -44,12 +45,12 @@ export const useAuthStateChange = (
   const handleChange = async (user: User | null) => {
     if (user) {
       const token = await user.getIdToken();
-      await authApi(token).post("/auth/token");
+      await setAuthCookie(token);
       const id = user.uid;
       return { token, id };
     } else {
       dispatch(setUserState(defaultUserState));
-      await regApi.delete("/auth/token", { withCredentials: true });
+      await removeAuthCookie();
       throw new Error("User doesn't exist")
     }
   };

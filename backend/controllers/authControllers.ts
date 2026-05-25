@@ -5,7 +5,6 @@ import { auth } from "../configs/fbConfigs.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes.js";
 import logger from "../utils/logger.js";
-import { IS_DEVELOPMENT, SESSION_COOKIE_NAME } from "../utils/regHelpers.js";
 import { CreateUserReqBody } from "../utils/types.js";
 
 
@@ -44,48 +43,6 @@ const getUser = async (req: Request, res: Response) => {
     return res.status(SUCCESS.OK).json(user.rows?.[0]);
   } catch (err) {
     logger.log("Get user", err);
-    return res
-      .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal server error" });
-  }
-};
-
-const setLoggedinCookie = async (req: Request, res: Response) => {
-  try {
-    const token = req.auth?.token;
-    if (!token?.trim())
-      return res
-        .status(CLIENT_ERROR.BAD_REQUEST)
-        .json({ message: "No token found" });
-
-    res.cookie(SESSION_COOKIE_NAME, token, {
-      maxAge: 60 * 60 * 1000,
-      sameSite: "none",
-      secure: true,
-      httpOnly: !IS_DEVELOPMENT,
-    });
-
-    return res.status(SUCCESS.OK).json({ message: "Cookie set" });
-  } catch (err) {
-    logger.log("Set logged in", err);
-    return res
-      .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal server error" });
-  }
-};
-
-const deleteSessionCookie = async (_: Request, res: Response) => {
-  try {
-    res.cookie(SESSION_COOKIE_NAME, null, {
-      maxAge: 0,
-      sameSite: "none",
-      httpOnly: !IS_DEVELOPMENT,
-      secure: !IS_DEVELOPMENT,
-    });
-
-    return res.status(SUCCESS.OK).json({ message: "Cookie deleted" });
-  } catch (err) {
-    logger.log("delete cookie", err);
     return res
       .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
       .json({ message: "Internal server error" });
@@ -132,5 +89,5 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-export { createUser, deleteSessionCookie, getUser, setLoggedinCookie, updateUser };
+export { createUser, getUser, updateUser };
 

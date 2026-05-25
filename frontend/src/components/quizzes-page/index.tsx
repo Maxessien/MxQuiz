@@ -25,9 +25,9 @@ const Quizzes = ({quizzes, page, totalPages}: {quizzes: QuizCardProps[], page?: 
             <div className="flex-1 w-full min-w-0 flex flex-col">
 
               {/* Quizzes Grid */}
-              {quizzes.length > 0 ? (
+              {quizzes?.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 w-full">
-                  {quizzes.map((quiz) => (
+                  {quizzes?.map((quiz) => (
                     <QuizCard key={quiz.quiz_id} {...quiz} />
                   ))}
                 </div>
