@@ -8,6 +8,8 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { User } from "firebase/auth";
+import { usePathname } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { removeAuthCookie, setAuthCookie } from "../actions/auth";
@@ -28,6 +30,9 @@ export const useAuthStateChange = (
   const { isLoggedIn, userId, idToken } = useAppSelector((state) => state.user);
 
   const dispatch = useDispatch();
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   const query = useQuery({
     enabled: isLoggedIn,
@@ -70,6 +75,7 @@ export const useAuthStateChange = (
           userId: id,
         }),
       );
+      if (pathname==="/") router.push(`/${id}`)
     },
     onError: ()=>{
       dispatch(

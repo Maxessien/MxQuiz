@@ -2,14 +2,25 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
 import { CLIENT_ERROR, SUCCESS } from "../utils/httpCodes";
-import { getDBQuizQuestions, gradeQuizAttempt, handleAsyncErrors } from "../utils/regHelpers";
+import {
+  getDBQuizQuestions,
+  gradeQuizAttempt,
+  handleAsyncErrors,
+} from "../utils/regHelpers";
 import { AttemptToken, SubmittedQuizBody } from "../utils/types";
-
+import { auth } from "../configs/fbConfigs";
 
 const getPublicQuizQuestions = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
+      // Decode user to attatch if token is present
+      const headers = req.headers.authorization;
+      const headerToken =
+        headers && headers.startsWith("Bearer ") ? headers.slice(7) : null;
+
+      const user = headerToken ? await auth.verifyIdToken(headerToken) : null;
+
       const id =
         typeof req.params.id === "string" ? req.params.id : req.params.id[0];
       const questions = await getDBQuizQuestions(id, null);
@@ -20,7 +31,7 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
           .json({ message: "Questions not found" });
 
       const signature: AttemptToken = {
-        attemptor_id: null,
+        attemptor_id: user?.uid || null,
         is_valid: true,
       };
 
@@ -28,10 +39,7 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
         throw new Error("JWT_KEY environment variable is not configured");
       }
 
-      const token = jwt.sign(
-        JSON.stringify(signature),
-        process.env.JWT_KEY,
-      );
+      const token = jwt.sign(JSON.stringify(signature), process.env.JWT_KEY);
 
       return res
         .status(SUCCESS.OK)
@@ -53,7 +61,6 @@ const getPrivateQuizQuestions = async (req: Request, res: Response) =>
           .status(CLIENT_ERROR.NOT_FOUND)
           .json({ message: "Questions not found" });
 
-      const hasUserId = req.query.userId;
       const signature: AttemptToken = {
         attemptor_id: req.auth?.uid ?? v4(),
         is_valid: true,
@@ -81,7 +88,8 @@ const gradeQuestionAnswers = async (req: Request, res: Response) =>
       }
 
       const verified = jwt.verify(attempt_token, process.env.JWT_KEY);
-      const token = typeof verified === 'string' ? verified : JSON.stringify(verified);
+      const token =
+        typeof verified === "string" ? verified : JSON.stringify(verified);
       const decoded: AttemptToken = JSON.parse(token);
 
       if (!decoded?.is_valid)
@@ -89,12 +97,19 @@ const gradeQuestionAnswers = async (req: Request, res: Response) =>
           .status(CLIENT_ERROR.UNAUTHORIZED)
           .json({ message: "Unauthorised attempt" });
 
-      const result = await gradeQuizAttempt(quiz_id, answers, decoded.attemptor_id)
-          
+      const result = await gradeQuizAttempt(
+        quiz_id,
+        answers,
+        decoded.attemptor_id,
+      );
+
       return res.status(SUCCESS.OK).json(result);
     },
     "Grade Quiz err",
   );
 
-export { getPrivateQuizQuestions, getPublicQuizQuestions, gradeQuestionAnswers };
-
+export {
+  getPrivateQuizQuestions,
+  getPublicQuizQuestions,
+  gradeQuestionAnswers,
+};

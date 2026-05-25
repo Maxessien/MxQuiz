@@ -1,5 +1,9 @@
 import { QuizCardProps } from "@/types/componentTypes";
-import { QuestionResult, QuizQuestionResponse, UserResponse } from "@/types/types";
+import {
+  QuestionResult,
+  QuizQuestionResponse,
+  UserResponse,
+} from "@/types/types";
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { authApi, regApi } from "./api";
 import logger from "./logger";
@@ -74,7 +78,12 @@ export const getQuizQuestions = async (
         : await regApi.get<{
             attempt_token: string;
             questions: QuizQuestionResponse[];
-          }>(`/questions/${quizId}`);
+          }>(
+            `/questions/${quizId}`,
+            idToken
+              ? { headers: { Authorization: `Bearer ${idToken}` } }
+              : undefined,
+          );
 
     return questions.data;
   } catch (err) {
@@ -91,7 +100,9 @@ export const getQuizDetails = async (
   try {
     const quiz =
       type === "private"
-        ? await authApi(idToken || "").get<QuizDetailsResponse>(`/quiz/private/${quizId}`)
+        ? await authApi(idToken || "").get<QuizDetailsResponse>(
+            `/quiz/private/${quizId}`,
+          )
         : await regApi.get<QuizDetailsResponse>(`/quiz/${quizId}`);
 
     return quiz.data;
@@ -106,7 +117,10 @@ export const submitQuiz = async (
   quizId: string,
   token: string,
 ) => {
-  const { data } = await regApi.post<{ score: number, result: QuestionResult[] }>("/questions/grade", {
+  const { data } = await regApi.post<{
+    score: number;
+    result: QuestionResult[];
+  }>("/questions/grade", {
     answers,
     attempt_token: token,
     quiz_id: quizId,

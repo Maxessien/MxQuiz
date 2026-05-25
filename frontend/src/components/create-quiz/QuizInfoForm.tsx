@@ -103,6 +103,10 @@ const QuizInfoForm = ({
                   value: 300,
                   message: "Quiz time cannot exceed 300 minutes",
                 },
+                validate: (val)=>{
+                  if (!Number.isFinite(Number(val))) return "Time must be a number"
+                  return true
+                }
               }),
             }}
           />

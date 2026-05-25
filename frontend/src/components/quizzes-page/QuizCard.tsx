@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "nextjs-toploader/app";
 import {
   FaRegBookmark,
@@ -9,15 +10,12 @@ import {
   FaUserFriends,
 } from "react-icons/fa";
 import { MdOutlineAutoAwesome } from "react-icons/md";
-import { VscVerifiedFilled } from "react-icons/vsc";
 import { QuizCardProps } from "../../../types/componentTypes";
 import Button from "../reusable/Button";
-import Link from "next/link";
 
 const QuizCard = (props: QuizCardProps) => {
   const {
     title,
-    author_name,
     is_ai_generated,
     time_limit,
     question_count,
@@ -45,10 +43,6 @@ const QuizCard = (props: QuizCardProps) => {
                 {title}
               </Link>
             </h3>
-            <div className="flex items-center gap-2 text-sm text-(--text-secondary) mt-1">
-              <span>By {author_name || ""}</span>
-              <VscVerifiedFilled className="text-blue-500" />
-            </div>
           </div>
         </div>
         <button className="text-(--text-secondary) hover:text-(--text-primary-light) transition-colors p-1">
