@@ -3,7 +3,7 @@ import { AuthFormType, Fields, FormFields } from "@/types/types";
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import Button from "../reusable/Button";
-import { Errors, FieldWrapper, Input, Label } from "./AuthFormFields";
+import { Errors, FieldWrapper, Input, Label } from "./FormFields";
 
 
 const AuthFormWrapper = ({

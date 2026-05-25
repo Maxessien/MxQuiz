@@ -1,6 +1,13 @@
 import { CreateQuizManualForm } from "@/types/types";
 import { FieldErrors, UseFormRegister } from "react-hook-form";
-import { Errors, FieldWrapper, Input, Label, TextArea } from "../auth/AuthFormFields";
+import {
+  Errors,
+  FieldWrapper,
+  Input,
+  Label,
+  Select,
+  TextArea,
+} from "../auth/FormFields";
 
 const QuizInfoForm = ({
   register,
@@ -9,6 +16,14 @@ const QuizInfoForm = ({
   register: UseFormRegister<CreateQuizManualForm>;
   errs: FieldErrors<CreateQuizManualForm>;
 }) => {
+  const visibilityOpts: {
+    val: CreateQuizManualForm["visibility"];
+    text: string;
+  }[] = [
+    { text: "Public", val: "public" },
+    { text: "Private", val: "private" },
+  ];
+
   return (
     <div className="w-full rounded-xl border border-(--text-secondary-light)/30 bg-(--main-tertiary) space-y-5 p-5 md:p-6 shadow-lg">
       <div className="pb-2 border-b border-(--text-secondary-light)/20">
@@ -19,7 +34,10 @@ const QuizInfoForm = ({
 
       <div className="space-y-4">
         <FieldWrapper>
-          <Label attrs={{ htmlFor: "quiz_title" }} extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)">
+          <Label
+            attrs={{ htmlFor: "quiz_title" }}
+            extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)"
+          >
             Title
           </Label>
           <Input
@@ -39,7 +57,10 @@ const QuizInfoForm = ({
         </FieldWrapper>
 
         <FieldWrapper>
-          <Label attrs={{ htmlFor: "quiz_desc" }} extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)">
+          <Label
+            attrs={{ htmlFor: "quiz_desc" }}
+            extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)"
+          >
             Description
           </Label>
           <TextArea
@@ -55,11 +76,16 @@ const QuizInfoForm = ({
               }),
             }}
           />
-          {errs.description && <Errors error={errs.description.message || ""} />}
+          {errs.description && (
+            <Errors error={errs.description.message || ""} />
+          )}
         </FieldWrapper>
 
         <FieldWrapper>
-          <Label attrs={{ htmlFor: "quiz_time" }} extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)">
+          <Label
+            attrs={{ htmlFor: "quiz_time" }}
+            extraClassNames="text-xs font-semibold uppercase tracking-wider text-(--text-secondary)"
+          >
             Time Limit (Minutes)
           </Label>
           <Input
@@ -81,6 +107,17 @@ const QuizInfoForm = ({
             }}
           />
           {errs.time && <Errors error={errs.time.message || ""} />}
+        </FieldWrapper>
+
+        <FieldWrapper>
+          <Label attrs={{ htmlFor: "quiz_visibility" }}>Visibility</Label>
+          <Select
+            attrs={{
+              ...register("visibility", { required: "Visibility is required" }),
+            }}
+            options={visibilityOpts}
+          />
+          {errs.visibility && <Errors error={errs.visibility.message || ""} />}
         </FieldWrapper>
       </div>
     </div>

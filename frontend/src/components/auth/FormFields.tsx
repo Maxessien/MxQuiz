@@ -2,10 +2,11 @@ import {
   HTMLAttributes,
   InputHTMLAttributes,
   LabelHTMLAttributes,
+  OptionHTMLAttributes,
   ReactNode,
+  SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
-
 
 const Input = ({
   attrs,
@@ -25,6 +26,7 @@ const Input = ({
     />
   );
 };
+
 const TextArea = ({
   attrs,
   extraClassNames,
@@ -40,6 +42,34 @@ const TextArea = ({
         extraClassNames
       }
     />
+  );
+};
+
+const Select = ({
+  attrs,
+  extraClassNames,
+  options = [],
+  optsAttrs,
+}: {
+  attrs?: SelectHTMLAttributes<HTMLSelectElement>;
+  extraClassNames?: string;
+  options?: { val: string; text: string | number }[];
+  optsAttrs?: OptionHTMLAttributes<HTMLOptionElement>;
+}) => {
+  return (
+    <select
+      {...attrs}
+      className={
+        "w-full max-w-lg bg-(--main-secondary-light) rounded-md text-base font-medium shadow-[inset_0px_0px_10px_-6px_var(--text-primary-light)] px-2 py-1 " +
+        extraClassNames
+      }
+    >
+      {options.map(({ text, val }) => (
+        <option className="hover:bg-(--main-secondary) transition-all" {...optsAttrs} value={val} key={val}>
+          {text}
+        </option>
+      ))}
+    </select>
   );
 };
 
@@ -100,5 +130,4 @@ const FieldWrapper = ({
   );
 };
 
-export { Errors, FieldWrapper, Input, Label, TextArea };
-
+export { Errors, FieldWrapper, Input, Label, TextArea, Select };

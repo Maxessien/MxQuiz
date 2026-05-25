@@ -23,9 +23,12 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
     defaultValues: initForm,
   });
 
-  const {idToken} = useAppSelector(state=> state.user)
+  const { idToken } = useAppSelector((state) => state.user);
 
-  const { append, update, remove } = useFieldArray({ control, name: "questions" });
+  const { append, update, remove } = useFieldArray({
+    control,
+    name: "questions",
+  });
 
   const addNewQuestion = useCallback(() => {
     const firstOptId = v4();
@@ -44,32 +47,38 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
     update(idx, value);
   };
 
-  const deleteQuestion = (idx: number)=>{
-    if (questions.length <= 1){
-      toast.warn("Quiz must have at least one question")
-      return
+  const deleteQuestion = (idx: number) => {
+    if (questions.length <= 1) {
+      toast.warn("Quiz must have at least one question");
+      return;
     }
-    remove(idx)
-  }
+    remove(idx);
+  };
 
   useEffect(() => {
-    addNewQuestion();
-  }, [addNewQuestion]);
+    if (questions.length === 0) addNewQuestion();
+  }, [addNewQuestion, questions]);
 
-  const router = useRouter()
+  const router = useRouter();
 
-  const {mutateAsync, isPending} = useMutation<void, Error, CreateQuizManualForm>({
-    mutationFn: (data)=> submitQuizQuestions(data, idToken),
-    onSuccess: ()=>{
-      toast.success("Quiz Created")
-      router.push("/quiz")
+  const { mutateAsync, isPending } = useMutation<
+    void,
+    Error,
+    CreateQuizManualForm
+  >({
+    mutationFn: (data) => submitQuizQuestions(data, idToken),
+    onSuccess: () => {
+      toast.success("Quiz Created");
+      router.push("/quiz");
     },
-    onError: ()=> toast.error("Failed to create quiz, try again later")
-  })
+    onError: () => toast.error("Failed to create quiz, try again later"),
+  });
 
   return (
     <form
-      onSubmit={handleSubmit((data) => mutateAsync(data))}
+      onSubmit={handleSubmit((data) =>
+        mutateAsync({ ...data, status: "published" }),
+      )}
       className="w-full space-y-6 max-w-7xl mx-auto px-4"
     >
       <div className="flex flex-col gap-6 items-start md:grid md:grid-cols-[38%_62%]">
@@ -115,7 +124,12 @@ const QuizManualForm = ({ initForm }: { initForm: CreateQuizManualForm }) => {
 
       {/* Form Submission Action Area */}
       <div className="pt-4 border-t border-(--text-secondary-light)/10 flex justify-center">
-        <Button attrs={{type: "submit", disabled: isPending}} width="w-full max-w-lg">{isPending ? "Publishing..." : "Publish Quiz"}</Button>
+        <Button
+          attrs={{ type: "submit", disabled: isPending }}
+          width="w-full max-w-lg"
+        >
+          {isPending ? "Publishing..." : "Publish Quiz"}
+        </Button>
       </div>
     </form>
   );

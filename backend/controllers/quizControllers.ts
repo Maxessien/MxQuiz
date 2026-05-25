@@ -23,11 +23,12 @@ const createQuiz = async (req: Request, res: Response) =>
       const { description, status, time, title, isAiGen, visibility, questions } =
         req.body as QuizBody;
 
+      const parsedTime = Number.isFinite(Number(time)) ? Number(time) : null
       await storeQuizandQuestions(
         {
           description,
           status,
-          time,
+          time: parsedTime,
           title,
           visibility,
           author: req.auth?.uid || "",
