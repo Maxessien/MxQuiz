@@ -223,7 +223,7 @@ const getQuizzes = async (req: Request, res: Response) =>
         searchParam,
         cleanedLimit,
         cleanedPage,
-        user?.uid
+        ...(user?.uid ? [user?.uid] : [])
       ]);
 
       return res.status(SUCCESS.OK).json(quizzes.rows);

@@ -23,21 +23,21 @@ const UserQuizzes = ({
   totalPages: number;
   userId: string;
 }) => {
-    const {idToken} = useAppSelector(state=> state.user)
+  const { idToken } = useAppSelector((state) => state.user);
 
-    const [available, setAvailable] = useState(quizzes)
+  const [available, setAvailable] = useState(quizzes);
 
-    const {mutateAsync, isPending} = useMutation({
-        mutationFn: async(id: string)=>{
-            await authApi(idToken).delete(`/quiz/${id}`)
-            return id
-        },
-        onError: ()=> toast.error("Failed to delete quiz, try again later"),
-        onSuccess: (id)=> {
-            toast.success("Quiz deleted")
-            setAvailable(state => state.filter(({quiz_id})=> quiz_id !== id))
-        }
-    })
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async (id: string) => {
+      await authApi(idToken).delete(`/quiz/${id}`);
+      return id;
+    },
+    onError: () => toast.error("Failed to delete quiz, try again later"),
+    onSuccess: (id) => {
+      toast.success("Quiz deleted");
+      setAvailable((state) => state.filter(({ quiz_id }) => quiz_id !== id));
+    },
+  });
 
   return (
     <div className="w-full flex flex-col gap-8 lg:gap-10">
@@ -52,8 +52,13 @@ const UserQuizzes = ({
             {available.map((quiz) => (
               <div className="space-y-2" key={quiz.quiz_id}>
                 <QuizCard {...quiz} />
-                <button onClick={()=> mutateAsync(quiz.quiz_id)} disabled={isPending} className="flex justify-center disabled:opacity-65 bg-red-600 rounded-md px-3 py-2 w-full items-center gap-2">
-                  <FaTrash /> <span>{isPending ? "Deleting..." : "Delete"}</span>
+                <button
+                  onClick={() => mutateAsync(quiz.quiz_id)}
+                  disabled={isPending}
+                  className="flex justify-center disabled:opacity-65 bg-red-700 hover:bg-red-600 transition-colors cursor-pointer rounded-md px-3 py-2 w-full items-center gap-2"
+                >
+                  <FaTrash />{" "}
+                  <span>{isPending ? "Deleting..." : "Delete"}</span>
                 </button>
               </div>
             ))}
