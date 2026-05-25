@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useAppSelector } from "@/store";
 import { UserAttemptResponse } from "@/types/types";
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const AttemptsTable = ({ attempts }: Props) => {
-    const {userId} = useAppSelector(state=> state.user)
+  const { userId } = useAppSelector((state) => state.user);
   return (
     <div className="w-full overflow-x-auto rounded-xl border border-(--main-tertiary-light) bg-(--main-tertiary) p-1 shadow-sm">
       <table className="w-full text-left border-collapse min-w-150">
@@ -97,7 +97,9 @@ const AttemptsTable = ({ attempts }: Props) => {
                           {percentage}%
                         </p>
                         <p className="text-xs text-(--text-secondary) mt-0.5">
-                          {attempt.score}/{attempt.questions_count}
+                          {Number.isFinite(Number(attempt.score)) &&
+                            Number.isFinite(Number(attempt.questions_count)) &&
+                            `${((attempt.score as number) / 100) * Number(attempt.questions_count)}/${attempt.questions_count}`}
                         </p>
                       </div>
                     </div>
@@ -126,7 +128,10 @@ const AttemptsTable = ({ attempts }: Props) => {
                   </p>
                 </td>
                 <td className="py-4 px-6">
-                  <Link href={`/${userId}/attempts/${attempt.attempt_id}`} className="p-2 min-w-max flex items-center justify-end gap-2 hover:text-(--main-primary) hover:underline cursor-pointer transition-colors">
+                  <Link
+                    href={`/${userId}/attempts/${attempt.attempt_id}`}
+                    className="p-2 min-w-max flex items-center justify-end gap-2 hover:text-(--main-primary) hover:underline cursor-pointer transition-colors"
+                  >
                     <span>
                       <FiEye size={17} />
                     </span>{" "}

@@ -20,7 +20,7 @@ const CreateQuiz = () => {
   });
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fadeIn">
+    <section className="w-full space-y-8">
       {/* Centered Dashboard Header block */}
       <header className="text-center space-y-4 max-w-2xl mx-auto">
         <h1 className="font-extrabold text-3xl md:text-4xl tracking-tight text-(--text-primary)">

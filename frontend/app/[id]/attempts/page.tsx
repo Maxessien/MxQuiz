@@ -13,7 +13,7 @@ const UserAttemptsPage = async() => {
     const attempts = await getUserAttempts(token?.value || "")
     
   return (
-    <div className="w-full max-w-6xl mx-auto py-6 px-4 md:px-8">
+    <div className="w-full">
       <AttemptsHeader />
       <AttemptsTable attempts={attempts} />
     </div>

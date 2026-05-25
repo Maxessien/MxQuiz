@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUserAttempts } from "../controllers/userControllers";
+import { getAttemptDetails, getUserAttempts } from "../controllers/userControllers";
 import { userAuthMiddleware } from "../middlewares/authMiddleware";
 
 const router = Router()
@@ -7,6 +7,7 @@ const router = Router()
 router.use(userAuthMiddleware)
 
 router.get("/attempts", getUserAttempts)
+router.get("/attempts/:id", getAttemptDetails)
 
 const userRoutes = router
 

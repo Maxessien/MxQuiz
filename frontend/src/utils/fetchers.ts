@@ -155,3 +155,17 @@ export const getUserAttempts = async(token: string)=>{
     return []
   }
 }
+
+export const getUserAttemptsDetails = async(token: string, id: string)=>{
+  try {
+    const attempts = await authApi(token).get<{
+    score: number;
+    result: QuestionResult[];
+  }>(`/user/attempts/${id}`)
+
+    return attempts.data
+  } catch (err) {
+    logger.error("Get user attempts", err)
+    return null
+  }
+}

@@ -14,7 +14,11 @@ const UserLayoutPage = async ({children}: {children: ReactNode}) => {
 
   if (!user) return <SignOutUser />
 
-  return <PublicAppLayout>{children}</PublicAppLayout>;
+  return <PublicAppLayout>
+    <div className='w-full max-w-6xl mx-auto px-2 sm:px-4 lg:px-7 py-6'>
+      {children}
+    </div>
+  </PublicAppLayout>;
 };
 
 export default UserLayoutPage;
