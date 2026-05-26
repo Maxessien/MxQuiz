@@ -110,6 +110,7 @@ const QuizQuestions = ({
   // Example timer logic
   useEffect(() => {
 
+
     const endTimer = ()=>{
       setTimesUp(enforceTimeLimit)
       mutateAsync()
@@ -156,9 +157,9 @@ const QuizQuestions = ({
           </h2>
 
           <div className="flex items-center gap-4 shrink-0">
-            <div className="flex items-center gap-2 px-4 py-2 bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-full text-(--main-primary-light) font-bold font-mono">
+            {enforceTimeLimit && <div className="flex items-center gap-2 px-4 py-2 bg-(--main-tertiary) border border-(--main-tertiary-light) rounded-full text-(--main-primary-light) font-bold font-mono">
               <FaRegClock /> {formatTime(timeLeft)}
-            </div>
+            </div>}
             <button className="flex items-center justify-center p-2.5 rounded-full bg-(--main-tertiary) border border-(--main-tertiary-light) text-(--text-secondary) hover:text-red-400 transition-colors">
               <FaFlag />
             </button>

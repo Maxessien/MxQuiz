@@ -32,12 +32,14 @@ const QuizQuestionPage = async ({
 
   if (!questions) return notFound();
 
+  console.log(questions)
+
   return (
     <PublicAppLayout>
       <QuizQuestions
         quizId={par.id}
         token={questions.attempt_token}
-        q={questions.questions.map((q) => ({
+        q={questions.questions?.map((q) => ({
           ...q,
           is_answered: false,
           userAnswer: null

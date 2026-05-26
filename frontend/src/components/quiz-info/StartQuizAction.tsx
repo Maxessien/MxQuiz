@@ -1,8 +1,8 @@
 import { QuizDetailsResponse } from "@/src/utils/fetchers";
 import { useRouter } from "nextjs-toploader/app";
+import { useState } from "react";
 import { FaPlay } from "react-icons/fa";
 import Button from "../reusable/Button";
-import { useState } from "react";
 
 interface Props {
   details: QuizDetailsResponse;
@@ -18,7 +18,7 @@ const StartQuizAction = ({ details }: Props) => {
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 bg-(--main-tertiary)/50 border border-(--main-tertiary-light) p-4 sm:p-5 rounded-2xl w-full mt-6">
-      <div className="flex-1 space-y-5">
+      <div className="flex-1 w-full space-y-5">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-(--text-secondary) uppercase tracking-wider">Quiz Mode</p>
           <div className="flex w-full items-center bg-(--main-tertiary-light) p-1 rounded-xl">

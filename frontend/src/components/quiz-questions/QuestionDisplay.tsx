@@ -130,7 +130,7 @@ const QuestionDisplay = ({
 
         {!isLast ? (
           <Button color="primary" attrs={{ onClick: onNext }} className="px-10">
-            Next Question
+            Next
           </Button>
         ) : (
           <Button
