@@ -1,22 +1,23 @@
 "use client";
 
 import { submitQuiz } from "@/src/utils/fetchers";
-import { formatTime } from "@/src/utils/regUtils";
+import { formatTime, gradeTestModeMcq } from "@/src/utils/regUtils";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "nextjs-toploader/app";
 import { useEffect, useState } from "react";
 import { FaFlag, FaRegClock } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { QuestionResult, QuizQuestionsMod } from "../../../types/types";
+import { QuizMode } from "../quiz-info/StartQuizAction";
 import QuestionDisplay from "./QuestionDisplay";
 import QuizNav from "./QuizNav";
 import Result from "./Result";
-import { QuizMode } from "../quiz-info/StartQuizAction";
+import TimesUpPopup from "./TimesUpPopup";
 
 const QuizQuestions = ({
   q,
   token,
-  quizId,
+  quizId, enforceTimeLimit, mode
 }: {
   q: QuizQuestionsMod[];
   token: string;
@@ -26,6 +27,7 @@ const QuizQuestions = ({
 }) => {
   // Use cache quiz state
   const hasCache = localStorage.getItem(quizId);
+
   const cache: {
     questions: QuizQuestionsMod[];
     token: string;
@@ -40,29 +42,28 @@ const QuizQuestions = ({
     isSubmitted: boolean;
     result: { score: number; val: QuestionResult[] };
   }>({ isSubmitted: false, result: { score: 0, val: [] } });
+
   const [currentIdx, setCurrentIdx] = useState(0);
+
   const [timeLeft, setTimeLeft] = useState(
     cache ? cache.timeLeft : (q[0]?.time_limit || 0) * 60,
   );
 
-  // Example timer logic
-  useEffect(() => {
-    
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
+  const [timesUp, setTimesUp] = useState(enforceTimeLimit && timeLeft <= 0)
 
-    return () => clearInterval(timer);
-  }, [timeLeft]);
 
   const handleSelectOption = (optionId: string | number) => {
+    if (timesUp) {
+      toast.error("Time limit exceeded, further attempts are disabled")
+      return
+    }
+
     setQuestions((prev) => {
       const newArr = [...prev];
       newArr[currentIdx] = {
         ...newArr[currentIdx],
         is_answered: true,
-        answer: String(optionId),
+        userAnswer: String(optionId),
       };
       return newArr;
     });
@@ -77,15 +78,14 @@ const QuizQuestions = ({
   };
 
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: () =>
-      submitQuiz(
-        questions.map(({ answer, question_id }) => ({
-          answer_id: answer || "",
+    mutationFn: () => mode === "exam" ? submitQuiz(
+        questions.map(({ userAnswer, question_id }) => ({
+          answer_id: userAnswer || "",
           question_id,
         })),
         quizId,
         token,
-      ),
+      ) : gradeTestModeMcq(questions),
     retry: 3,
     onError: () => {
       // Cache quiz attempt for future retries
@@ -106,7 +106,27 @@ const QuizQuestions = ({
       });
     },
   });
+  
+  // Example timer logic
+  useEffect(() => {
 
+    const endTimer = ()=>{
+      setTimesUp(enforceTimeLimit)
+      mutateAsync()
+    }
+    
+    if (timeLeft <= 0) {
+      endTimer()
+      return
+    };
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enforceTimeLimit, timeLeft]);
   const router = useRouter();
 
   if (submitted.isSubmitted)
@@ -126,7 +146,8 @@ const QuizQuestions = ({
   if (!questions.length) return null;
 
   return (
-    <div className="w-full bg-(--main-secondary-light) text-(--text-primary) font-sans">
+    <div className="w-full relative bg-(--main-secondary-light) text-(--text-primary) font-sans">
+      {timesUp && <TimesUpPopup isSubmitting={isPending} />}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4">
         {/* Quiz Top Action row */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -160,6 +181,7 @@ const QuizQuestions = ({
             isLast={currentIdx === questions.length - 1}
             onSubmit={mutateAsync}
             isSubmitting={isPending}
+            mode={mode}
           />
         </div>
       </div>

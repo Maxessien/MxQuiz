@@ -157,8 +157,9 @@ const getDBQuizDetails = async (id: string, userId: string | null) => {
 
 const getDBQuizQuestions = async (id: string, userId: string | null, includeAnswers: boolean) => {
   const query = `
-        SELECT q.question_id, q.question_text, q.options, qz.title, ${includeAnswers ? "qz.answer," : ""} qz.time_limit
-        FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
+        SELECT q.question_id, q.question_text, q.options, qz.title,
+          ${includeAnswers ? "q.answer, q.explanation," : ""} qz.time_limit
+         FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id        FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
         WHERE q.quiz_id = $1 AND (qz.visibility = 'public' OR qz.author_user_id = $2)
         GROUP BY q.question_id, q.question_text,
           q.options, qz.title, qz.time_limit

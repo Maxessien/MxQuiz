@@ -5,13 +5,15 @@ import {
   Fields,
   FormFields,
   GenQuizRes,
+  QuestionResult,
+  QuizQuestionsMod,
 } from "@/types/types";
 import { RegisterOptions } from "react-hook-form";
 import { authApi } from "./api";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
-export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key"
+export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key";
 
 export const formatTime = (seconds?: number) => {
   if (seconds === undefined) return "--:--";
@@ -100,3 +102,49 @@ export const submitQuizQuestions = async (
 ) => {
   await authApi(idToken).post("/quiz", data);
 };
+
+export const gradeTestModeMcq = (
+  questions: QuizQuestionsMod[],
+): Promise<{ score: number; result: QuestionResult[] }> => new Promise((res, rej)=>{
+
+  // Reject if none of the questions have an answer field
+  if (questions.every(({answer})=> !answer || answer.trim().length === 0)) {
+    rej({message: "Missing answers in questions"})
+    return
+  }
+
+  const grade: { score: number; result: QuestionResult[] } = {
+    score: 0,
+    result: [],
+  };
+
+  for (const {
+    options,
+    question_id,
+    question_text,
+    explanation,
+    userAnswer,
+    answer,
+  } of questions) {
+    if (answer === userAnswer) grade.score++;
+
+    const answerVal = options.find(
+      ({ optionId }) => optionId === answer,
+    )?.value;
+    const userAnswerVal = options.find(
+      ({ optionId }) => optionId === userAnswer,
+    )?.value;
+
+    grade.result.push({
+      answer: { id: answer || "N/A", val: answerVal || "N/A" },
+      explanation: explanation || null,
+      question_id,
+      question_text,
+      userAnswer: { id: userAnswer || "", val: userAnswerVal || "" },
+    });
+  }
+
+  grade.score = questions.length > 0 ? (grade.score / questions.length) * 100 : 0;
+
+  res(grade);
+});

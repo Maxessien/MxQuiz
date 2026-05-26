@@ -54,7 +54,7 @@ export interface GenQuizRes {
 
 export interface QuizQuestionOption {
   optionId: string;
-  value: string | number;
+  value: string;
 }
 
 export interface QuizQuestionResponse {
@@ -63,11 +63,13 @@ export interface QuizQuestionResponse {
   question_id: string;
   title: string;
   time_limit: number;
+  answer?: string
+  explanation?: string | null
 }
 
 export interface QuizQuestionsMod extends QuizQuestionResponse {
   is_answered: boolean;
-  answer: string | null;
+  userAnswer: string | null;
 }
 
 export type QuizType = "mcq" | "theory" | "both";
