@@ -11,6 +11,7 @@ import { QuestionResult, QuizQuestionsMod } from "../../../types/types";
 import QuestionDisplay from "./QuestionDisplay";
 import QuizNav from "./QuizNav";
 import Result from "./Result";
+import { QuizMode } from "../quiz-info/StartQuizAction";
 
 const QuizQuestions = ({
   q,
@@ -20,6 +21,8 @@ const QuizQuestions = ({
   q: QuizQuestionsMod[];
   token: string;
   quizId: string;
+  mode: QuizMode
+  enforceTimeLimit: boolean
 }) => {
   // Use cache quiz state
   const hasCache = localStorage.getItem(quizId);
@@ -44,10 +47,12 @@ const QuizQuestions = ({
 
   // Example timer logic
   useEffect(() => {
+    
     if (timeLeft <= 0) return;
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
+
     return () => clearInterval(timer);
   }, [timeLeft]);
 

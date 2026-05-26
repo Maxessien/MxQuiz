@@ -11,6 +11,8 @@ import { authApi } from "./api";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
+export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key"
+
 export const formatTime = (seconds?: number) => {
   if (seconds === undefined) return "--:--";
   const m = Math.floor(seconds / 60);

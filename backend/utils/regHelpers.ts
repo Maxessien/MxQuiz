@@ -16,6 +16,8 @@ export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
+export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key"
+
 const handleAsyncErrors = async (
   res: Response,
   cb: () => Promise<Response<any, any>>,
@@ -153,9 +155,9 @@ const getDBQuizDetails = async (id: string, userId: string | null) => {
   return quiz;
 };
 
-const getDBQuizQuestions = async (id: string, userId: string | null) => {
+const getDBQuizQuestions = async (id: string, userId: string | null, includeAnswers: boolean) => {
   const query = `
-        SELECT q.question_id, q.question_text, q.options, qz.title, qz.time_limit
+        SELECT q.question_id, q.question_text, q.options, qz.title, ${includeAnswers ? "qz.answer," : ""} qz.time_limit
         FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
         WHERE q.quiz_id = $1 AND (qz.visibility = 'public' OR qz.author_user_id = $2)
         GROUP BY q.question_id, q.question_text,

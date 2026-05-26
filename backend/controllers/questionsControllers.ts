@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { v4 } from "uuid";
 import { CLIENT_ERROR, SUCCESS } from "../utils/httpCodes";
 import {
+  CUSTOM_HEADER_KEY,
   getDBQuizQuestions,
   gradeQuizAttempt,
   handleAsyncErrors,
@@ -21,9 +22,18 @@ const getPublicQuizQuestions = async (req: Request, res: Response) =>
 
       const user = headerToken ? await auth.verifyIdToken(headerToken) : null;
 
+      const includeAnswers = req.query.include === "ans";
+
+      const key = req.headers[CUSTOM_HEADER_KEY] as string | undefined;
+      const validKey = key === process.env.INTERNAL_API_KEY;
+
       const id =
         typeof req.params.id === "string" ? req.params.id : req.params.id[0];
-      const questions = await getDBQuizQuestions(id, null);
+      const questions = await getDBQuizQuestions(
+        id,
+        null,
+        includeAnswers && validKey,
+      );
 
       if (questions.rows.length === 0)
         return res
@@ -52,9 +62,18 @@ const getPrivateQuizQuestions = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
+      const includeAnswers = req.query.include === "ans";
+
+      const key = req.headers[CUSTOM_HEADER_KEY] as string | undefined;
+      const validKey = key === process.env.INTERNAL_API_KEY;
+
       const id =
         typeof req.params.id === "string" ? req.params.id : req.params.id[0];
-      const questions = await getDBQuizQuestions(id, req.auth?.uid ?? null);
+      const questions = await getDBQuizQuestions(
+        id,
+        req.auth?.uid ?? null,
+        includeAnswers && validKey,
+      );
 
       if (questions.rows.length === 0)
         return res

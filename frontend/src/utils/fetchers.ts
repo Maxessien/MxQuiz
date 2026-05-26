@@ -8,6 +8,7 @@ import {
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { authApi, regApi } from "./api";
 import logger from "./logger";
+import { CUSTOM_HEADER_KEY } from "./regUtils";
 
 export interface SubmittedQuizAnswer {
   question_id: string;
@@ -61,7 +62,7 @@ export const getQuizzes = async (
       `/quiz?${params.toString()}`,
       token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
     );
-    
+
     return res.data;
   } catch (err) {
     logger.error("Get Quiz", err);
@@ -73,6 +74,7 @@ export const getQuizQuestions = async (
   type: "public" | "private",
   quizId: string,
   idToken?: string,
+  includeAnswers: { val: boolean; apiKey: string } = { val: false, apiKey: "" },
 ) => {
   try {
     const questions =
@@ -80,17 +82,28 @@ export const getQuizQuestions = async (
         ? await authApi(idToken || "").get<{
             attempt_token: string;
             questions: QuizQuestionResponse[];
-          }>(`/questions/private/${quizId}`)
+          }>(
+            `/questions/private/${quizId}${includeAnswers.val ? "?include=ans" : ""}`,
+            includeAnswers.val
+              ? { headers: { [CUSTOM_HEADER_KEY]: includeAnswers.apiKey } }
+              : undefined,
+          )
         : await regApi.get<{
             attempt_token: string;
             questions: QuizQuestionResponse[];
           }>(
-            `/questions/${quizId}`,
+            `/questions/${quizId}${includeAnswers.val ? "?include=ans" : ""}`,
             idToken
-              ? { headers: { Authorization: `Bearer ${idToken}` } }
+              ? {
+                  headers: {
+                    Authorization: `Bearer ${idToken}`,
+                    ...(includeAnswers.val
+                      ? { [CUSTOM_HEADER_KEY]: includeAnswers.apiKey }
+                      : {}),
+                  },
+                }
               : undefined,
           );
-
     return questions.data;
   } catch (err) {
     logger.error("Get Questions", err);
