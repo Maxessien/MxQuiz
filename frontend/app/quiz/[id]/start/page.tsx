@@ -40,7 +40,7 @@ const QuizQuestionPage = async ({
         q={questions.questions.map((q) => ({
           ...q,
           is_answered: false,
-          answer: null,
+          userAnswer: null
         }))}
         mode={sPar.mode}
         enforceTimeLimit={sPar.strict ? true : false}
