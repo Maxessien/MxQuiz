@@ -1,14 +1,49 @@
-import { QuizQuestionsMod } from "../../../types/types"
+"use client";
+
+import { useState } from "react";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { QuizQuestionsMod } from "../../../types/types";
 
 const QuizNav = ({gotoNumber, quizzes, currentNumber}: {quizzes: Pick<QuizQuestionsMod, "is_answered">[], gotoNumber: (num: number)=> void, currentNumber: number}) => {
+    const [isOpen, setIsOpen] = useState(false);
     const answeresPercent = ()=>{
         const answered = quizzes.filter((q)=> q.is_answered)
         return ((answered.length / quizzes.length) * 100).toFixed(0)
     }
 
   return (
-    <aside className="w-full lg:w-72 lg:shrink-0 bg-(--main-tertiary)/50 border border-(--main-tertiary-light) rounded-2xl p-5 sm:p-6 flex flex-col gap-6">
-        <header className="flex flex-col gap-4 border-b border-(--main-tertiary-light) pb-6">
+    <aside className="w-full lg:w-72 lg:shrink-0 bg-(--main-tertiary)/50 border border-(--main-tertiary-light) rounded-2xl flex flex-col overflow-hidden">
+        {/* Mobile Header Toggle */}
+        <button 
+           onClick={() => setIsOpen(!isOpen)} 
+           className="lg:hidden flex flex-col gap-4 p-5 sm:p-6 w-full text-left"
+        >
+            <div className="flex justify-between items-center w-full">
+                <h3 className="text-lg font-bold text-(--text-primary-light)">
+                  {`Question ${currentNumber + 1} of ${quizzes.length}`}
+                </h3>
+                <span className="text-(--text-secondary)">
+                    {isOpen ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+                <div className="flex justify-between items-center text-xs text-(--text-secondary) font-medium">
+                  <span>Progress</span>
+                  <span>{`${answeresPercent()}%`}</span>
+                </div>
+                <div className="w-full h-2 bg-(--main-tertiary-light) rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-(--main-primary-light) transition-all duration-300"
+                      style={{ width: `${answeresPercent()}%` }}
+                    />
+                </div>
+            </div>
+        </button>
+
+        {/* Expanded Content or Desktop Default */}
+        <div className={`${isOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 p-5 sm:p-6 lg:border-none border-t border-(--main-tertiary-light)`}>
+            {/* Desktop header */}
+            <header className="hidden lg:flex flex-col gap-4 border-b border-(--main-tertiary-light) pb-6">
             <h3 className="text-lg font-bold text-(--text-primary-light)">
               {`Question ${currentNumber + 1} of ${quizzes.length}`}
             </h3>
@@ -45,6 +80,7 @@ const QuizNav = ({gotoNumber, quizzes, currentNumber}: {quizzes: Pick<QuizQuesti
                     {i + 1}
                 </button>
             ))}
+        </div>
         </div>
     </aside>
   )
