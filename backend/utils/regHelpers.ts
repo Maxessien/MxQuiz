@@ -3,6 +3,7 @@ import format from "pg-format";
 import pool from "./../configs/sqlConfig.js";
 import { SERVER_ERROR } from "./httpCodes.js";
 import logger from "./logger.js";
+import { decode, encode, isWithinTokenLimit } from "gpt-tokenizer";
 import type {
   FormattedResult,
   QuestionResultWithType,
@@ -16,7 +17,7 @@ export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
-export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key"
+export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key";
 
 const handleAsyncErrors = async (
   res: Response,
@@ -155,7 +156,11 @@ const getDBQuizDetails = async (id: string, userId: string | null) => {
   return quiz;
 };
 
-const getDBQuizQuestions = async (id: string, userId: string | null, includeAnswers: boolean) => {
+const getDBQuizQuestions = async (
+  id: string,
+  userId: string | null,
+  includeAnswers: boolean,
+) => {
   const query = `
         SELECT q.question_id, q.question_text, q.options, qz.title, 
           ${includeAnswers ? "q.answer, q.explanation," : ""} qz.time_limit
@@ -254,6 +259,20 @@ const gradeQuizAttempt = async (
   return res;
 };
 
+const MAX_TOKEN_L = 7500;
+
+const chunkPdfContent = (content: string) => {
+  const isSmall = isWithinTokenLimit(content, MAX_TOKEN_L);
+  if (isSmall) return [content];
+
+  const encoded = encode(content);
+  const encodedSplit: number[][] = [];
+  for (let i = 0; i < Math.ceil(encoded.length / MAX_TOKEN_L); i++) {
+    encodedSplit.push(encoded.splice(i * MAX_TOKEN_L, (i + 1) * MAX_TOKEN_L));
+  }
+  return encodedSplit.map((n) => decode(n));
+};
+
 export {
   getDBQuizDetails,
   getDBQuizQuestions,
@@ -261,6 +280,6 @@ export {
   gradeMcqAnswers,
   gradeQuizAttempt,
   handleAsyncErrors,
-  storeQuizandQuestions
+  storeQuizandQuestions,
+  chunkPdfContent,
 };
-

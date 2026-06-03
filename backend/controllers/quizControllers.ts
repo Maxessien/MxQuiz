@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { readFile } from "node:fs/promises";
+import { auth } from "../configs/fbConfigs.js";
 import { client } from "../configs/groq.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
@@ -11,7 +12,6 @@ import {
   storeQuizandQuestions,
 } from "../utils/regHelpers";
 import { Quiz, QuizQuestion, QuizType } from "../utils/types";
-import { auth } from "../configs/fbConfigs.js";
 
 interface QuizBody extends Quiz {
   questions: QuizQuestion[];
@@ -100,6 +100,29 @@ const createQuizWithAi = async (req: Request, res: Response) =>
         optCount: Number.isFinite(Number(optCount)) ? Number(optCount) : 3,
       };
 
+      const quizInfoRes = await client.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          {
+            role: "system",
+            content: `You are a specialized AI that generates quiz metadata. 
+            Based on the given text, create metadata for a quiz. 
+            Your response MUST be in valid JSON format matching this exact object structure: 
+            { "title": "A catchy title for the quiz based on the content", "thumbnail": "", 
+              "description": "A concise, engaging description of the quiz content", "author": "", 
+              "isAiGen": true, "visibility": "private", "status": "draft", "time": null }`,
+          },
+          { role: "user", content: pdfText.data.extracted_text },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      res.flushHeaders()
+
       const questionsRes = await client.chat.completions.create({
         model: "openai/gpt-oss-120b",
         messages: [
@@ -110,23 +133,6 @@ const createQuizWithAi = async (req: Request, res: Response) =>
               clean.count,
               clean.optCount,
             ),
-          },
-          { role: "user", content: pdfText.data.extracted_text },
-        ],
-        response_format: { type: "json_object" },
-      });
-
-      const quizInfoRes = await client.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: [
-          {
-            role: "system",
-            content: `You are a specialized AI that generates quiz metadata. 
-            Based on the given text, create metadata for a quiz. 
-            Your response MUST be in valid JSON format matching this exact object structure: 
-            { "title": "A catchy title for the quiz based on the content", "thumbnail": "", 
-             "description": "A concise, engaging description of the quiz content", "author": "", 
-             "isAiGen": true, "visibility": "private", "status": "draft", "time": null }`,
           },
           { role: "user", content: pdfText.data.extracted_text },
         ],
@@ -273,9 +279,6 @@ const getPrivateQuizDetails = async (req: Request, res: Response) =>
 
 export {
   createQuiz,
-  createQuizWithAi,
-  getQuizzes,
-  getPublicQuizDetails,
-  getPrivateQuizDetails,
-  deleteQuiz
+  createQuizWithAi, deleteQuiz, getPrivateQuizDetails, getPublicQuizDetails, getQuizzes
 };
+
