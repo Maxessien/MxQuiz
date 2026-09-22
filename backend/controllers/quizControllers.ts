@@ -6,6 +6,7 @@ import { client } from "../configs/groq.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
 import {
+  chunkPdfContent,
   getDBQuizDetails,
   getPdfSystemsPrompt,
   handleAsyncErrors,
@@ -54,7 +55,8 @@ const deleteQuiz = async (req: Request, res: Response) =>
   handleAsyncErrors(
     res,
     async () => {
-      const query = "DELETE FROM quizzes WHERE quiz_id = $1 AND author_user_id = $2";
+      const query =
+        "DELETE FROM quizzes WHERE quiz_id = $1 AND author_user_id = $2";
       await pool.query(query, [req.params.id, req.auth?.uid]);
 
       return res.status(SUCCESS.OK).json({ message: "Deleted successfully" });
@@ -117,36 +119,33 @@ const createQuizWithAi = async (req: Request, res: Response) =>
         response_format: { type: "json_object" },
       });
 
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
+      const chunked = chunkPdfContent(pdfText.data.extracted_text);
+      let questions: QuizQuestion[] = []
 
-      res.flushHeaders()
-
-      const questionsRes = await client.chat.completions.create({
-        model: "openai/gpt-oss-120b",
-        messages: [
-          {
-            role: "system",
-            content: getPdfSystemsPrompt(
-              clean.type,
-              clean.count,
-              clean.optCount,
-            ),
-          },
-          { role: "user", content: pdfText.data.extracted_text },
-        ],
-        response_format: { type: "json_object" },
-      });
-
-      const content = questionsRes.choices[0].message.content;
+      for (const content of chunked) {
+        try {
+          const questionsRes = await client.chat.completions.create({
+            model: "openai/gpt-oss-120b",
+            messages: [
+              {
+                role: "system",
+                content: getPdfSystemsPrompt(
+                  clean.type,
+                  clean.count,
+                  clean.optCount,
+                ),
+              },
+              { role: "user", content },
+            ],
+            response_format: { type: "json_object" },
+          });
+          questions = [...questions, ...JSON.parse(questionsRes.choices[0].message.content || "")]
+        } catch (err) {
+          console.log(err);
+          continue
+        }
+      }
       const infoContent = quizInfoRes.choices[0].message.content;
-      if (!content)
-        return res
-          .status(SERVER_ERROR.INTERNAL_SERVER_ERROR)
-          .json({ message: "Failed to generate questions" });
-
-      const questions: QuizQuestion[] = JSON.parse(content);
       const quizInfo: Quiz = JSON.parse(infoContent || "");
 
       quizInfo.author = req.auth?.uid || "";
@@ -229,7 +228,7 @@ const getQuizzes = async (req: Request, res: Response) =>
         searchParam,
         cleanedLimit,
         cleanedPage,
-        ...(user?.uid ? [user?.uid] : [])
+        ...(user?.uid ? [user?.uid] : []),
       ]);
 
       return res.status(SUCCESS.OK).json(quizzes.rows);
@@ -279,6 +278,9 @@ const getPrivateQuizDetails = async (req: Request, res: Response) =>
 
 export {
   createQuiz,
-  createQuizWithAi, deleteQuiz, getPrivateQuizDetails, getPublicQuizDetails, getQuizzes
+  createQuizWithAi,
+  deleteQuiz,
+  getPrivateQuizDetails,
+  getPublicQuizDetails,
+  getQuizzes,
 };
-

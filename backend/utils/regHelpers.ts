@@ -112,30 +112,46 @@ const getPdfSystemsPrompt = (
   questionCount: number,
   optionsCount?: number,
 ) => {
+  const optCount = Number.isFinite(optionsCount) ? optionsCount : 4;
+
   const extra = {
     both: "The array should contain a mix of mcq and theory question type with a 7:3 ratio respectively",
-    mcq: "The array should only contain the mcq type questions",
+    mcq: `The array should only contain the mcq type questions with ${optCount} options for each question`,
     theory: "The array should only contain the theory type questions",
   };
 
-  return `You are an expert quiz generator. Using the provided text, 
-  generate an array of ${questionCount} quiz questions 
-  ${
-    Number.isFinite(optionsCount) &&
-    (questionType === "mcq" || questionType === "both")
-      ? `with each question having only ${optionsCount} options`
-      : ""
-  } in valid JSON format. 
-  CRITICAL RULE FOR MCQs: Ensure all options are of similar length and level of detail. 
-  The correct answer MUST NOT be noticeably longer, more explanatory, or structurally different from the incorrect options. 
-  Create plausible distractors so the answer cannot be guessed without actually reading the provided text.
-  SECOND CRITICAL RULE FOR MCQs: The position/index of the correct answer within the options array 
-  MUST be cryptographically randomized across the quiz. Ensure perfectly even distribution of correct answer 
-  positions so no single option index is favored as the correct answer over the others. 
-  Your response must strictly contain ONLY an array of objects matching this exact structure structure 
-  (no markdown wrappers or other text): [{ "type": "mcq" | "theory", "question_text": "The question being asked", 
-  "options": [{ "optionId": "unique-id", "value": "Option text" }], "answer": "The correct optionId or theory answer", 
-  "explanation": "Why the answer is correct or null" }]. ${extra[questionType]}`;
+  return `You are an elite, expert academic assessment creator. Your goal is to generate ${questionCount} high-quality quiz questions based strictly and exclusively on the provided text. The questions must feel human-authored, testing deep conceptual understanding rather than simple rote memorization.
+
+PEDAGOGICAL & QUALITY RULES:
+1. NO KEYWORD MATCHING: Do not copy sentences verbatim from the text and leave a blank space. Paraphrase the concepts using alternative phrasing to test true comprehension.
+2. HIGH-QUALITY DISTRACTORS: For MCQs, wrong options must be highly plausible. Construct distractors by using actual terminology, misconceptions, or adjacent facts mentioned elsewhere in the text, but applied incorrectly to this specific context. Avoid obviously fake or unrelated answers.
+3. SYNTAX VARIETY: Vary your question structures. Mix scenario-based application questions ("If X happens, what occurs?"), analytical questions, and occasional negative constraints ("Which of the following does NOT...").
+4. STRUCTURAL PARITY: For MCQs, all options must be structurally uniform. The correct answer MUST NOT be noticeably longer, more detailed, or more nuanced than the incorrect options.
+5. NO TRAP PHRASES: Absolutely do not use "All of the above" or "None of the above" as options.
+
+MCQ INDEX RANDOMIZATION:
+The index position of the correct answer within the "options" array must be completely randomized across the generated set. Ensure a perfectly uniform distribution of correct answer positions (e.g., do not stack correct answers under the first option ID).
+
+OUTPUT RULES:
+- The response must strictly contain ONLY an array of objects matching the exact JSON structure specified below.
+- Do NOT wrap your response in markdown code blocks (\`\`\`json ... \`\`\`), do not include conversational text, intro, or outro.
+
+EXPECTED STRUCTURE:
+[{
+  "type": "mcq" | "theory",
+  "question_text": "The highly refined question text",
+  "options": ${
+    questionType !== "theory"
+      ? `[
+    { "optionId": "A", "value": "Plausible option text" },
+    { "optionId": "B", "value": "Plausible option text" }
+    // Max of ${optCount} options total
+  ]`
+      : "null"
+  },
+  "answer": "The correct optionId (e.g., 'B') or the concise ideal theory answer",
+  "explanation": "A thorough breakdown explaining why the answer is correct and why the adjacent concepts/distractors are incorrect in this context."
+}]. ${extra[questionType]}`;
 };
 
 const getDBQuizDetails = async (id: string, userId: string | null) => {
@@ -162,7 +178,7 @@ const getDBQuizQuestions = async (
   includeAnswers: boolean,
 ) => {
   const query = `
-        SELECT q.question_id, q.question_text, q.options, qz.title, 
+        SELECT q.question_id, q.question_text, q.options, qz.title,
           ${includeAnswers ? "q.answer, q.explanation," : ""} qz.time_limit
         FROM questions AS q JOIN quizzes AS qz ON q.quiz_id = qz.quiz_id
         WHERE q.quiz_id = $1 AND (qz.visibility = 'public' OR qz.author_user_id = $2)
@@ -261,7 +277,7 @@ const gradeQuizAttempt = async (
 
 const MAX_TOKEN_L = 7500;
 
-const chunkPdfContent = (content: string) => {
+const chunkPdfContent = (content: string): string[] => {
   const isSmall = isWithinTokenLimit(content, MAX_TOKEN_L);
   if (isSmall) return [content];
 
