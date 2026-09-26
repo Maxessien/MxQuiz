@@ -22,8 +22,8 @@ const getUserDashboardStats = (req: Request, res: Response) =>
 
       const recentAttemptsQuery = `
         SELECT a.attempt_id, a.quiz_id, a.score, a.created_at, q.title as quiz_title
-        FROM quiz_attempts a
-        JOIN quizzes q ON a.quiz_id = q.quiz_id
+        FROM quiz_attempts AS a
+        JOIN quizzes AS q ON a.quiz_id = q.quiz_id
         WHERE a.user_id = $1 AND a.status = 'finished'
         ORDER BY a.created_at DESC
         LIMIT 5
@@ -95,4 +95,3 @@ const getAttemptDetails = (req: Request, res: Response) =>
   );
 
 export { getAttemptDetails, getUserAttempts, getUserDashboardStats };
-

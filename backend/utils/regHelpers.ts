@@ -10,14 +10,20 @@ import type {
   Quiz,
   QuizQuestion,
   QuizType,
+  RateLimitInfo,
   SubmittedQuizAnswer,
 } from "./types.js";
+import type { ChatCompletion } from "groq-sdk/resources/chat/completions.mjs";
+import { client } from "../configs/groq.js";
+import { RateLimitError } from "groq-sdk";
 
 export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
 
 export const SESSION_COOKIE_NAME = "user_session_cookie";
 
 export const CUSTOM_HEADER_KEY = "x-mxquiz-api-key";
+
+export let RATE_LIMIT_INFO: (RateLimitInfo & {lastUpdated: number}) | null = null
 
 const handleAsyncErrors = async (
   res: Response,
@@ -289,6 +295,247 @@ const chunkPdfContent = (content: string): string[] => {
   return encodedSplit.map((n) => decode(n));
 };
 
+const parseRateLimitHeaders = (headers: Headers): RateLimitInfo => {
+  const result: RateLimitInfo = {};
+
+  // Helper to convert time strings (e.g., "1m26.4s", "30.232s") to seconds
+  const parseTimeToSeconds = (timeStr: string | null): number | undefined => {
+    if (!timeStr) return undefined;
+
+    let totalSeconds = 0;
+
+    // Match minutes (e.g., "1m")
+    const minMatch = timeStr.match(/(\d+)m/);
+    if (minMatch) {
+      totalSeconds += parseInt(minMatch[1] || "0", 10) * 60;
+    }
+
+    // Match seconds, including decimals (e.g., "26.4s", "30.232s")
+    const secMatch = timeStr.match(/(\d+(?:\.\d+)?)s/);
+    if (secMatch) {
+      totalSeconds += parseFloat(secMatch[1] || "0");
+    }
+
+    return totalSeconds;
+  };
+
+  // Helper to safely parse strings to integers
+  const parseNumber = (val: string | null): number | undefined => {
+    return val ? parseInt(val, 10) : undefined;
+  };
+
+  // Fetch API headers lookups are case-insensitive
+  const limitReq = headers.get('x-ratelimit-limit-requests');
+  const limitTok = headers.get('x-ratelimit-limit-tokens');
+  const remReq = headers.get('x-ratelimit-remaining-requests');
+  const remTok = headers.get('x-ratelimit-remaining-tokens');
+  const resetReq = headers.get('x-ratelimit-reset-requests');
+  const resetTok = headers.get('x-ratelimit-reset-tokens');
+
+  if (limitReq !== null) result.limitRequests = parseNumber(limitReq);
+  if (limitTok !== null) result.limitTokens = parseNumber(limitTok);
+  if (remReq !== null) result.remainingRequests = parseNumber(remReq);
+  if (remTok !== null) result.remainingTokens = parseNumber(remTok);
+
+  if (resetReq !== null) result.resetRequestsSeconds = parseTimeToSeconds(resetReq);
+  if (resetTok !== null) result.resetTokensSeconds = parseTimeToSeconds(resetTok);
+
+  return result;
+}
+
+const sleep = (time: number) => new Promise((res) => setTimeout(res, time))
+
+const updateRatelimitInfo = async () => {
+  try {
+    const res = await client.chat.completions.create({
+      model: "openai/gpt-oss-120b",
+      messages: [{role: "system", content: "Reply in a single word"}, {role: "user", content: "Hi"}]
+    }).withResponse()
+
+    const parsed = parseRateLimitHeaders(res.response.headers)
+
+    return parsed
+  } catch (err) {
+    if (err instanceof RateLimitError) return parseRateLimitHeaders(err.headers)
+    else throw err
+  }
+}
+
+const chunkedQuestionsPrompting = async (
+  promptReq: (content: string, questionCount: number) => Promise<{
+    data: ChatCompletion;
+    response: globalThis.Response;
+  }>,
+  prompt: string,
+  totalQuestionsCount: number
+): Promise<QuizQuestion[]> => {
+  let questions: QuizQuestion[] = [];
+
+  // Reserve token headroom for the model's generated response
+  const RESPONSE_BUFFER = 2000;
+  const DEFAULT_RESET_SECONDS = 60;
+
+  // Track the remaining questions budget precisely across chunks
+  let remainingQuestionsBudget = totalQuestionsCount;
+
+  // Split your input text by paragraphs or newlines to ensure clean textual cuts
+  const paragraphs = prompt.split(/\n+/);
+
+  // Pre-calculate token sizes for all paragraphs to avoid redundant tokenization
+  const paragraphTokens = paragraphs.map(p => encode(p).length);
+  const totalParagraphTokensSum = paragraphTokens.reduce((sum, val) => sum + val, 0);
+
+  // Track tokens remaining to be processed for precise proportional question weighting
+  let unprocessedTokensWeight = totalParagraphTokensSum;
+
+  let currentChunkText = "";
+  let currentChunkTokenCount = 0;
+  let currentChunkWeight = 0;
+
+  // Helper to ensure valid, fresh rate limit data exists
+  const refreshRateLimits = async () => {
+    if (!RATE_LIMIT_INFO || (Date.now() - RATE_LIMIT_INFO.lastUpdated) > ((RATE_LIMIT_INFO.resetTokensSeconds || DEFAULT_RESET_SECONDS) * 1000)) {
+      const parsed = await updateRatelimitInfo();
+      RATE_LIMIT_INFO = { ...parsed, lastUpdated: Date.now() };
+    }
+  };
+
+  await refreshRateLimits();
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i]!;
+    const pTokenCount = paragraphTokens[i]!;
+
+    // Account for added characters when joining string blocks
+    const delimiterTokens = currentChunkText ? encode("\n\n").length : 0;
+    const nextTestChunkTokenCount = currentChunkTokenCount + delimiterTokens + pTokenCount;
+
+    const maxAllowedTokens = Math.max(0, (RATE_LIMIT_INFO?.remainingTokens || 4000) - RESPONSE_BUFFER);
+
+    // If adding this paragraph fits inside our rate limit token budget, append it and keep building the chunk
+    if (nextTestChunkTokenCount <= maxAllowedTokens || currentChunkText === "") {
+      currentChunkText = currentChunkText ? `${currentChunkText}\n\n${paragraph}` : paragraph;
+      currentChunkTokenCount = nextTestChunkTokenCount;
+      currentChunkWeight += pTokenCount;
+    } else {
+      // Calculate exact question count for this chunk using a distribution method
+      let chunkQuestionCount = 0;
+      if (unprocessedTokensWeight > 0 && remainingQuestionsBudget > 0) {
+        chunkQuestionCount = Math.round((currentChunkWeight / unprocessedTokensWeight) * remainingQuestionsBudget);
+
+        // Safety Floor: Enforce at least 1 question if there is budget remaining, preventing zero-allocation errors
+        if (chunkQuestionCount === 0 && remainingQuestionsBudget > 0) {
+          chunkQuestionCount = 1;
+        }
+
+        // Ensure we don't accidentally allocate more than what is left in the budget
+        chunkQuestionCount = Math.min(chunkQuestionCount, remainingQuestionsBudget);
+      }
+
+      // Decrement the global balances before passing down
+      remainingQuestionsBudget -= chunkQuestionCount;
+      unprocessedTokensWeight -= currentChunkWeight;
+
+      // Only dispatch the chunk if the allocation is greater than 0
+      if (chunkQuestionCount > 0) {
+        questions = await dispatchChunk(
+          currentChunkText,
+          (cont) => promptReq(cont, chunkQuestionCount),
+          questions,
+          RESPONSE_BUFFER,
+          DEFAULT_RESET_SECONDS
+        );
+      } else {
+        logger.warn("Skipping chunk dispatch because the question budget has already been completely exhausted.");
+      }
+
+      // Reset the window with the paragraph that didn't fit
+      currentChunkText = paragraph;
+      currentChunkTokenCount = pTokenCount;
+      currentChunkWeight = pTokenCount;
+
+      await refreshRateLimits();
+    }
+  }
+
+  // Dispatch any remaining text sitting in the buffer
+  if (currentChunkText.trim()) {
+    // The final chunk gets 100% of whatever remains in the question budget to guarantee total math accuracy
+    const chunkQuestionCount = remainingQuestionsBudget;
+
+    if (chunkQuestionCount > 0) {
+      questions = await dispatchChunk(
+        currentChunkText,
+        (cont) => promptReq(cont, chunkQuestionCount),
+        questions,
+        RESPONSE_BUFFER,
+        DEFAULT_RESET_SECONDS
+      );
+    } else {
+      logger.warn("Skipping final chunk dispatch because the question budget has already been completely exhausted.");
+    }
+  }
+
+  return questions;
+};
+
+
+// Isolated worker function to manage backoff execution and payload dispatching
+const dispatchChunk = async (
+  textChunk: string,
+  promptReq: (content: string) => Promise<{ data: ChatCompletion; response: globalThis.Response }>,
+  currentQuestions: QuizQuestion[],
+  responseBuffer: number,
+  defaultResetSeconds: number
+): Promise<QuizQuestion[]> => {
+  console.log("Dispatching chunk...")
+  let questions = [...currentQuestions];
+  let success = false;
+
+  while (!success) {
+    const remainingTokens = RATE_LIMIT_INFO?.remainingTokens ?? 0;
+    const chunkTokenCount = encode(textChunk).length;
+
+    // Check if both request limits and token budgets permit the call right now
+    if ((RATE_LIMIT_INFO?.remainingRequests ?? 1) > 0 && remainingTokens > (chunkTokenCount + responseBuffer)) {
+      try {
+        const res = await promptReq(textChunk);
+
+        const content = res.data.choices[0]?.message.content || "[]";
+        try {
+          const parsedQuestions = JSON.parse(content);
+          if (Array.isArray(parsedQuestions)) {
+            questions = [...questions, ...parsedQuestions];
+          }
+        } catch (jsonErr) {
+          logger.error("Failed to parse LLM completion chunk as JSON", jsonErr);
+        }
+
+        RATE_LIMIT_INFO = { ...parseRateLimitHeaders(res.response.headers), lastUpdated: Date.now() };
+        success = true;
+      } catch (err) {
+        if (err instanceof RateLimitError) {
+          RATE_LIMIT_INFO = { ...parseRateLimitHeaders(err.headers), lastUpdated: Date.now() };
+          const sleepTime = (RATE_LIMIT_INFO.resetTokensSeconds || RATE_LIMIT_INFO.resetRequestsSeconds || defaultResetSeconds) * 1000;
+          await sleep(Math.max(sleepTime, 1000));
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      // Cooldown execution if current window parameters don't allow processing
+      const sleepTime = (RATE_LIMIT_INFO?.resetTokensSeconds || RATE_LIMIT_INFO?.resetRequestsSeconds || defaultResetSeconds) * 1000;
+      await sleep(Math.max(sleepTime, 1000));
+
+      const parsed = await updateRatelimitInfo();
+      RATE_LIMIT_INFO = { ...parsed, lastUpdated: Date.now() };
+    }
+  }
+
+  return questions;
+};
+
+
 export {
   getDBQuizDetails,
   getDBQuizQuestions,
@@ -298,4 +545,5 @@ export {
   handleAsyncErrors,
   storeQuizandQuestions,
   chunkPdfContent,
+  parseRateLimitHeaders, updateRatelimitInfo, chunkedQuestionsPrompting
 };

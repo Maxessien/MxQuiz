@@ -79,3 +79,12 @@ export interface FormattedResult extends Pick<QuestionResult, "explanation" | "q
   answer: {id: string, val: string},
   userAnswer: {id: string, val: string}
 }
+
+export interface RateLimitInfo {
+  limitRequests?: number | undefined;
+  limitTokens?: number | undefined;
+  remainingRequests?: number | undefined;
+  remainingTokens?: number | undefined;
+  resetRequestsSeconds?: number | undefined;
+  resetTokensSeconds?: number | undefined;
+}

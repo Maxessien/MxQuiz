@@ -106,7 +106,7 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
   const [showNav, setShowNav] = useState(false);
   const pathname = usePathname();
   const { width } = useAppSelector((state) => state.app);
-  const { isLoggedIn, avatarUrl, name, userId } = useAppSelector(
+  const { isLoggedIn, avatarUrl, name, userId, idToken } = useAppSelector(
     (state) => state.user,
   );
   const router = useRouter();
@@ -124,6 +124,8 @@ const PublicAppLayout = ({ children }: { children: ReactNode }) => {
     const closeNav = () => {
       setShowNav(false);
     };
+
+    if (isLoggedIn && pathname === "/" && idToken) router.push(`/${userId}`)
 
     closeNav();
   }, [pathname]);

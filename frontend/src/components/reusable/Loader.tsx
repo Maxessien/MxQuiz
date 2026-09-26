@@ -48,7 +48,7 @@ const Loader = ({
               fill="url(#grad)"
               letterSpacing="-10"
             >
-              CM
+              MQ
             </text>
           </svg>
         </motion.div>

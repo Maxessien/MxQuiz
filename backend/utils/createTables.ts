@@ -69,7 +69,7 @@ export const createQuestionsTable = async () => {
       question_text TEXT NOT NULL,
 
       options JSONB NOT NULL,
-      
+
       answer TEXT NOT NULL,
 
       explanation TEXT,

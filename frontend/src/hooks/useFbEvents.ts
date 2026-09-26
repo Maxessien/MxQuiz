@@ -12,6 +12,8 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { removeAuthCookie, setAuthCookie } from "../actions/auth";
 import { authApi } from "../utils/api";
+import { useRouter } from "nextjs-toploader/app";
+import {usePathname} from "next/navigation"
 
 export const useAuthStateChange = (
   queryOptions?: UndefinedInitialDataOptions<
@@ -31,6 +33,9 @@ export const useAuthStateChange = (
   >,
 ) => {
   const { isLoggedIn, userId, idToken } = useAppSelector((state) => state.user);
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   const dispatch = useDispatch();
 
@@ -75,6 +80,7 @@ export const useAuthStateChange = (
           userId: id,
         }),
       );
+      if (pathname === "/") router.push(`/${id}`)
     },
     onError: () => {
       dispatch(

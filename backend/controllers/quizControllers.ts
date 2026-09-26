@@ -6,13 +6,16 @@ import { client } from "../configs/groq.js";
 import pool from "../configs/sqlConfig.js";
 import { CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "../utils/httpCodes";
 import {
+  chunkedQuestionsPrompting,
   chunkPdfContent,
   getDBQuizDetails,
   getPdfSystemsPrompt,
   handleAsyncErrors,
+  parseRateLimitHeaders,
   storeQuizandQuestions,
 } from "../utils/regHelpers";
 import { Quiz, QuizQuestion, QuizType } from "../utils/types";
+import { decode, encode } from "gpt-tokenizer";
 
 interface QuizBody extends Quiz {
   questions: QuizQuestion[];
@@ -103,48 +106,37 @@ const createQuizWithAi = async (req: Request, res: Response) =>
       };
 
       const quizInfoRes = await client.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        model: "openai/gpt-oss-20b",
         messages: [
           {
             role: "system",
-            content: `You are a specialized AI that generates quiz metadata. 
-            Based on the given text, create metadata for a quiz. 
-            Your response MUST be in valid JSON format matching this exact object structure: 
-            { "title": "A catchy title for the quiz based on the content", "thumbnail": "", 
-              "description": "A concise, engaging description of the quiz content", "author": "", 
+            content: `You are a specialized AI that generates quiz metadata.
+            Based on the given text, create metadata for a quiz.
+            Your response MUST be in valid JSON format matching this exact object structure:
+            { "title": "A catchy title for the quiz based on the content", "thumbnail": "",
+              "description": "A concise, engaging description of the quiz content", "author": "",
               "isAiGen": true, "visibility": "private", "status": "draft", "time": null }`,
           },
-          { role: "user", content: pdfText.data.extracted_text },
+          { role: "user", content: decode(encode(pdfText.data.extracted_text).slice(0, 5000)) + "...." },
         ],
         response_format: { type: "json_object" },
       });
 
-      const chunked = chunkPdfContent(pdfText.data.extracted_text);
-      let questions: QuizQuestion[] = []
-
-      for (const content of chunked) {
-        try {
-          const questionsRes = await client.chat.completions.create({
-            model: "openai/gpt-oss-120b",
-            messages: [
-              {
-                role: "system",
-                content: getPdfSystemsPrompt(
-                  clean.type,
-                  clean.count,
-                  clean.optCount,
-                ),
-              },
-              { role: "user", content },
-            ],
-            response_format: { type: "json_object" },
-          });
-          questions = [...questions, ...JSON.parse(questionsRes.choices[0].message.content || "")]
-        } catch (err) {
-          console.log(err);
-          continue
-        }
-      }
+      let questions: QuizQuestion[] = await chunkedQuestionsPrompting((content, questionCount)=> client.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        messages: [
+          {
+            role: "system",
+            content: getPdfSystemsPrompt(
+              clean.type,
+              questionCount,
+              clean.optCount,
+            ),
+          },
+          { role: "user", content },
+        ],
+        response_format: { type: "json_object" },
+      }).withResponse(), pdfText.data?.extracted_text, clean.count)
       const infoContent = quizInfoRes.choices[0].message.content;
       const quizInfo: Quiz = JSON.parse(infoContent || "");
 
@@ -209,7 +201,7 @@ const getQuizzes = async (req: Request, res: Response) =>
       const user = headerToken ? await auth.verifyIdToken(headerToken) : null;
 
       const query = `
-      SELECT 
+      SELECT
         q.quiz_id, q.title, q.description, q.time_limit, q.is_ai_generated, q.created_at,
         (SELECT COUNT(*)::int FROM quizzes) as total_rows,
         (SELECT COUNT(*)::int FROM questions WHERE quiz_id = q.quiz_id) as question_count,
